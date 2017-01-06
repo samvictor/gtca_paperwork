@@ -7,6 +7,7 @@
 import time
 from flask import Flask
 from threading import Thread
+import webbrowser
 
 print("Hello world, I'm running flask")
 
@@ -20,8 +21,8 @@ def start_server():
     app.run(port=1094)
 
 def open_browser():
-    time.sleep(2)
-    print("i'm alive")
+    time.sleep(3)
+    webbrowser.get().open("https://www.google.com")
 
 
 if __name__ == "__main__":
