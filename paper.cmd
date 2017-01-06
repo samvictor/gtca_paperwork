@@ -1,2 +1,2 @@
 echo "starting Paperwork..."
-python paper.py
+python paper_data/paper.py
