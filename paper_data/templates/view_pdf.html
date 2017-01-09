@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body %}
+    <style>
+        html, body { overflow-y: hidden; }
+        
+        #pdf_embed {
+            width: calc(80% - 20px);
+            height: calc(100% - 66px);
+            margin-right: auto;
+            margin-left: auto;
+            display: block;
+            border: solid 1px #202020;
+        }    
+        
+        #left_btn, #right_btn {
+            position: fixed;
+            top: 50%;
+            font-size: 4em;
+            cursor: pointer;
+        }
+        
+        #left_btn {
+            left: 10px;
+        }
+        
+        #right_btn {
+            right: 10px;
+        }
+    </style>
+    <p style="text-align: center;">displaying {{data.to_display[0]}}</p>
+    <span id="left_btn" class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
+    <span id="right_btn" class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
+    <embed id ="pdf_embed" src="{{url_for('static', filename='scanner/'+data.to_display[0])}}" />
+    
+    
+    <script>
+        $("#left_btn").click(function(){alert("left click")});
+        $("#right_btn").click(function(){alert("right click")});
+    </script>
+{% endblock %}
