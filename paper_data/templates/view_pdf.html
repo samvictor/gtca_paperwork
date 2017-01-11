@@ -37,8 +37,14 @@
             outline: none;
         }
     </style>
-    <p style="text-align: center;">displaying {{data.to_display}}</p>
-    <embed id ="pdf_embed" src="{{url_for('static', filename='scanner/'+data.to_display)}}" />
+    <p style="text-align: center;">displaying {{data.to_display}}<br>
+        <a style="text-align: center;"href="{{url_for('static', filename='scanner/'+data.to_display)}}" 
+            download="{{data.to_display}}">download</a>
+    </p>
+    
+    <object id ="pdf_embed" data="{{url_for('static', filename='scanner/'+data.to_display)}}" src="{{url_for('static', filename='scanner/'+data.to_display)}}">
+        alt: This format is not supported. Open the file that was downloaded.
+    </object>
     
     <span id="left_btn" class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
     <span id="right_btn" class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>

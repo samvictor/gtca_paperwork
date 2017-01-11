@@ -10,6 +10,7 @@ from threading import Thread
 import shutil
 from stat import S_ISREG, ST_CTIME, ST_MODE
 import os, sys, time
+import win32com.client
 
 my_port = 1094
 scanner_path = "C:\\Users\\Errolyn Fraser\\SCANNER\\"
@@ -27,6 +28,7 @@ def hello():
     return "Hello World!"
  
 @app.route("/viewpdf", defaults={"file_num": 0})
+@app.route("/viewpdf/", defaults={"file_num": 0})
 @app.route("/viewpdf/<int:file_num>")
 def view_pdf(file_num):
     file_num = int(file_num)
@@ -38,10 +40,48 @@ def view_pdf(file_num):
             files.append({"name": file_name, "time": file_stats[ST_CTIME]})
     
     files = sorted(files, key = lambda file: file["time"], reverse = True)
-    shutil.copy(os.path.join(scanner_path, files[file_num]["name"]),
-                        os.path.join(static_path, "scanner", files[file_num]["name"]))
-                        
-    to_html = {"to_display": files[file_num]["name"], "file_num":  file_num, "max_file_num": len(files) - 1}
+    file_name = files[file_num]["name"]
+    print(os.path.join(static_path, "scanner", file_name))
+    shutil.copyfile(os.path.join(scanner_path, file_name),
+                        os.path.join(static_path, "scanner", file_name.replace(" ", "_")))
+    
+    file_name_ns = file_name.replace(" ", "_")
+    file_ext = file_name_ns.split(".")[-1]
+    #if file_ext in ["doc", "docx", "ppt", "pptx", "pub", "pubx", "xls", "xlsx"] and False:
+    if file_ext in ["doc", "docx", "xls", "xlsx", "ppt", "pptx"]:
+        
+        in_file = os.path.abspath(os.path.join(static_path, "scanner", file_name_ns))
+        
+        # split by ".", remove end (something like .com), combine what remains, add .pdf
+        out_file = os.path.abspath(os.path.join(static_path, "scanner", 
+                                                                         ".".join(file_name_ns.split(".")[:-1]+["pdf"])))
+        
+        doc = None
+        if file_ext in ["doc", "docx"]:
+            word = win32com.client.Dispatch("Word.Application")
+            doc = word.Documents.Open(in_file)
+            doc.SaveAs(out_file, FileFormat=17)
+        
+        elif file_ext in ["xls", "xlsx"]:
+            office = win32com.client.Dispatch("Excel.Application")
+            doc = office.Workbooks.Open(in_file)
+            ws = doc.Worksheets[0]
+            ws.Visible = 1
+            ws.ExportAsFixedFormat(0, out_file)
+        
+        elif file_ext in ["pub", "pubx"]:
+            word = win32com.client.Dispatch("Publisher.Application")
+            doc = word.Documents.Open(in_file)
+        elif file_ext in ["ppt", "pptx"]:
+            word = win32com.client.Dispatch("PowerPoint.Application")
+            doc = word.Presentations.Open(in_file)
+            doc.SaveAs(out_file, FileFormat=32)
+        
+        doc.Close()
+        word.Quit()
+        file_name_ns =  ".".join(file_name_ns.split(".")[:-1]+["pdf"])
+    
+    to_html = {"to_display": file_name_ns, "file_num":  file_num, "max_file_num": len(files) - 1}
     return render_template("view_pdf.html", data=to_html)
 
 
