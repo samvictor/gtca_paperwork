@@ -8,10 +8,12 @@ import time, webbrowser, requests
 from flask import Flask, url_for, render_template
 from threading import Thread
 import shutil
+from stat import S_ISREG, ST_CTIME, ST_MODE
+import os, sys, time
 
 my_port = 1094
 scanner_path = "C:\\Users\\Errolyn Fraser\\SCANNER\\"
-static_path = "C:\\Users\\Errolyn Fraser\\Documents\\gtca_paperwork\\paper_data\\static\\"
+static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static"
 
 print("Hello world, I'm running flask")
 
@@ -24,13 +26,23 @@ def hello():
     
     return "Hello World!"
  
-@app.route("/viewpdf")
-def view_pdf():
-    shutil.copy(scanner_path+"scanscan0014.pdf", static_path+"scanner\scanscan0014.pdf")
-    to_html = {"to_display":["scanscan0014.pdf", 
-                                            "scanscan0013.pdf",
-                                            "scanscan0012.pdf"]}
-    return render_template('view_pdf.html', data=to_html)
+@app.route("/viewpdf", defaults={"file_num": 0})
+@app.route("/viewpdf/<int:file_num>")
+def view_pdf(file_num):
+    file_num = int(file_num)
+    scanner_files = os.listdir(scanner_path)
+    files = []
+    for file_name in scanner_files:
+        file_stats = os.stat(os.path.join(scanner_path, file_name))
+        if S_ISREG(file_stats[ST_MODE]):
+            files.append({"name": file_name, "time": file_stats[ST_CTIME]})
+    
+    files = sorted(files, key = lambda file: file["time"], reverse = True)
+    shutil.copy(os.path.join(scanner_path, files[file_num]["name"]),
+                        os.path.join(static_path, "scanner", files[file_num]["name"]))
+                        
+    to_html = {"to_display": files[file_num]["name"], "file_num":  file_num, "max_file_num": len(files) - 1}
+    return render_template("view_pdf.html", data=to_html)
 
 
 # =============== other functions =============

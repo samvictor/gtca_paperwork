@@ -26,15 +26,42 @@
         #right_btn {
             right: 10px;
         }
+        
+        #this_btn {
+            position: fixed;
+            bottom: 13px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: solid 1px #104010;
+            width: 200px;
+            outline: none;
+        }
     </style>
-    <p style="text-align: center;">displaying {{data.to_display[0]}}</p>
+    <p style="text-align: center;">displaying {{data.to_display}}</p>
+    <embed id ="pdf_embed" src="{{url_for('static', filename='scanner/'+data.to_display)}}" />
+    
     <span id="left_btn" class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
     <span id="right_btn" class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
-    <embed id ="pdf_embed" src="{{url_for('static', filename='scanner/'+data.to_display[0])}}" />
+    
+    <button id="this_btn" class="btn btn-success btn-lg" type="submit">THIS IS IT</button>
     
     
     <script>
-        $("#left_btn").click(function(){alert("left click")});
-        $("#right_btn").click(function(){alert("right click")});
+        $("#left_btn").click(function(){
+            var file_num = {{data.file_num}};
+            if (file_num === 0)
+                return;
+            window.location.replace("{{url_for('view_pdf', file_num=(data.file_num - 1))}}");
+        });
+        
+        $("#right_btn").click(function(){
+            var file_num = {{data.file_num}};
+            var max_file_num = {{data.max_file_num}}
+            if (file_num === max_file_num)
+                return;
+            window.location.replace("{{url_for('view_pdf', file_num=(data.file_num + 1))}}");
+        });
     </script>
 {% endblock %}
+
+
