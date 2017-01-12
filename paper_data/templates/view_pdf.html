@@ -5,7 +5,7 @@
         
         #pdf_embed {
             width: calc(80% - 20px);
-            height: calc(100% - 66px);
+            height: calc(100% - 105px);
             margin-right: auto;
             margin-left: auto;
             display: block;
@@ -39,8 +39,12 @@
     </style>
     <p style="text-align: center;">displaying {{data.to_display}}<br>
         <a style="text-align: center;"href="{{url_for('static', filename='scanner/'+data.to_display)}}" 
-            download="{{data.to_display}}">download</a>
+            download="{{data.to_display}}">download</a><br>
+        Click "This is it" below to add this file to the system
     </p>
+    
+    <p id="bad_format_msg" style="display: none; text-align: center;"></p>
+    
     
     <object id ="pdf_embed" data="{{url_for('static', filename='scanner/'+data.to_display)}}" src="{{url_for('static', filename='scanner/'+data.to_display)}}">
         alt: This format is not supported. Open the file that was downloaded.
@@ -53,6 +57,12 @@
     
     
     <script>
+        bad_format = {{data.bad_format}}
+        if (bad_format) {
+            $("#pdf_embed").css("display", "none");
+            $("#bad_format_msg").html("This format is not supported. Opening in app...").css("display", "block");
+        }
+        
         $("#left_btn").click(function(){
             var file_num = {{data.file_num}};
             if (file_num === 0)
