@@ -36,6 +36,24 @@
             width: 200px;
             outline: none;
         }
+        
+        #dimmer {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(32, 32, 32, 0.7);
+        }
+        
+        #loading_msg {
+            color: white;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
     </style>
     <p style="text-align: center;">displaying {{data.to_display}}<br>
         <a style="text-align: center;"href="{{url_for('static', filename='scanner/'+data.to_display)}}" 
@@ -45,15 +63,21 @@
     
     <p id="bad_format_msg" style="display: none; text-align: center;"></p>
     
-    
-    <object id ="pdf_embed" data="{{url_for('static', filename='scanner/'+data.to_display)}}" src="{{url_for('static', filename='scanner/'+data.to_display)}}">
-        alt: This format is not supported. Open the file that was downloaded.
-    </object>
+    {% if not data.bad_format %}
+        <object id ="pdf_embed" data="{{url_for('static', filename='scanner/'+data.to_display)}}" src="{{url_for('static', filename='scanner/'+data.to_display)}}">
+            alt: This format is not supported. Download the file to view it.
+        </object>
+    {% endif %}
     
     <span id="left_btn" class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
     <span id="right_btn" class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
     
     <button id="this_btn" class="btn btn-success btn-lg" type="submit">THIS IS IT</button>
+    
+    <div id="dimmer" style="display: none;">
+        <h2 id="loading_msg" >Loading . . .</h2>
+    </div>
+    
     
     
     <script>
@@ -67,6 +91,7 @@
             var file_num = {{data.file_num}};
             if (file_num === 0)
                 return;
+            show_loading();
             window.location.replace("{{url_for('view_pdf', file_num=(data.file_num - 1))}}");
         });
         
@@ -75,8 +100,41 @@
             var max_file_num = {{data.max_file_num}}
             if (file_num === max_file_num)
                 return;
+            show_loading();
             window.location.replace("{{url_for('view_pdf', file_num=(data.file_num + 1))}}");
         });
+        
+        function show_loading() {
+            $("#dimmer").fadeIn(400);
+            // Start the loop
+            setTimeout(nextFrame, 0);
+            
+            i = 0;
+            function nextFrame() {
+                loading_animation(i);
+                i++;
+                // Continue the loop in 0.6s
+                setTimeout(nextFrame, 600);
+            }
+            
+            function loading_animation(input) {
+                switch(input%4) {
+                    case 0:
+                        $("#loading_msg").html("Loading")
+                    break;
+                    case 1:
+                        $("#loading_msg").html("Loading .")
+                    break;
+                    case 2: 
+                        $("#loading_msg").html("Loading . .")
+                    break;
+                    case 3: 
+                        $("#loading_msg").html("Loading . . .")
+                    break;
+                }
+                
+            }
+        }
     </script>
 {% endblock %}
 

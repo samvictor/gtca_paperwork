@@ -19,6 +19,7 @@ static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\s
 print("Hello world, I'm running flask")
 
 app = Flask(__name__)
+app.secret_key  = os.urandom(25)
 
 
 # ============== Flask views ==================
