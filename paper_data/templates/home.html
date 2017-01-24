@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block body %}
+    <style>
+        .col-sm-2{background-color: red;}
+        .folders, .files {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .folders {
+        }
+        
+        .folder_img {
+            width: 60px;
+            cursor: pointer;
+        }
+        
+        .file_img {
+            width: 40px;
+        }
+    </style>
+    
+    <h1>Files and Folders</h1>
+    <div id="container">
+        {% if data.folders %}
+            <div id="folders_row" class="row"></div>
+        {% endif %}
+        {% if data.files %}
+            <div id="files_row" class="row"></div>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        var folders_row = $("#folders_row");
+        var folders = {{ data.folders|safe }};
+        var folders_jq = [];        
+        var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}' class='folder_img' ></img>";        
+        var temp_folder = null;
+        
+        for( var i = 0; i < folders.length; i++) {
+            temp_folder = $("<div id='folder_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 folders'>"+folder_img +"<br>"+folders[i].replace(/_/g, " ") +"</div>");
+            temp_folder.on("click", {"folder_name": folders[i]}, function(event){
+                window.location.href += "/" + event.data.folder_name;
+            });
+            folders_jq.push(temp_folder);
+        }
+        
+        folders_row.append(folders_jq);
+        
+        
+        var files_row = $("#files_row");        
+        var files = {{data.files|safe}};        
+        var files_jq = [];
+        var file_img = "<img src='{{url_for('static', filename='images/paper.png')}}' class='file_img' ></img>";
+        var temp_file = null;
+        
+        for( var i = 0; i < files.length; i++) {
+            temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_/g, " ") +"</div>");
+            temp_file.click = $(function () {
+            
+            });
+            files_jq.push(temp_file);
+        }
+        
+        files_row.append(files_jq);
+        
+        
+    </script>
+{% endblock %}
+
+
