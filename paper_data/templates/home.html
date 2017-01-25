@@ -18,6 +18,7 @@
         
         .file_img {
             width: 40px;
+            cursor: pointer;
         }
     </style>
     
@@ -60,8 +61,8 @@
         
         for( var i = 0; i < files.length; i++) {
             temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_/g, " ") +"</div>");
-            temp_file.click = $(function () {
-            
+            temp_file.on("click", {"file_name": files[i]}, function(event){
+                window.location.href = "{{data.view_file_path}}" + event.data.file_name;
             });
             files_jq.push(temp_file);
         }

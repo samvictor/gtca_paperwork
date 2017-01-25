@@ -5,7 +5,7 @@
 #!/usr/bin/env python
 # pip install flask && pip install requests
 import time, webbrowser, requests
-from flask import Flask, url_for, render_template, redirect
+from flask import Flask, url_for, render_template, redirect, send_from_directory
 from threading import Thread
 import shutil
 from stat import S_ISREG, ST_CTIME, ST_MODE
@@ -23,15 +23,17 @@ try:
         quit()
 except requests.exceptions.ConnectionError:
     pass
-        
-scanner_path = "C:\\Users\\Errolyn Fraser\\SCANNER\\"
-static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static"
-files_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\paper_files"
-sep = "\\" # directory separator
-print("Hello world, I'm running flask")
 
 app = Flask(__name__)
 app.secret_key  = os.urandom(25)
+#app.use_x_sendfile = True
+        
+scanner_path = "C:\\Users\\Errolyn Fraser\\SCANNER"
+static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static"
+files_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static\paper_files"
+static_files_path = r"/static/paper_files"
+sep = "\\" # directory separator
+print("Hello world, I'm running flask")
 
 
 # ============== Flask views ==================
@@ -39,10 +41,15 @@ app.secret_key  = os.urandom(25)
 @app.route("/files/", defaults={"dir_path": None})
 @app.route("/files", defaults={"dir_path": None})
 @app.route("/files/<path:dir_path>")
-def file_viewer(dir_path):
+def dir_viewer(dir_path):
     if not dir_path:
         curr_path = files_path
-    else:
+        dir_path = ""
+    else:      
+        # dir_path should always have a trailing slash but never a slash in the beginning
+        # if dir_path is blank, no slash
+        if dir_path[-1] != "/":
+            dir_path += "/"
         # replace '/' with whatever is the separator on this os, and replace spaces with underscores
         # python's replace uses a string while js's replace uses regex
         curr_path = os.path.join(files_path, *dir_path.replace(" ", "_").split("/"))
@@ -51,15 +58,29 @@ def file_viewer(dir_path):
         files = next(os.walk(curr_path)) # (dirpath, dirnames, filenames)
     except:
         print ("file path "+ curr_path +" not found")
-        return redirect(url_for("file_viewer"), code=302)
+        return redirect(url_for("dir_viewer"), code=302)
         
-    to_template = {"folders": files[1], "files": files[2], "curr_path": curr_path, "sep": sep}
+    to_template = {"folders": files[1], "files": files[2], "curr_path": curr_path, "view_file_path": "/viewfile/" + dir_path}
     return render_template("home.html", data = to_template)
+    
+    
+@app.route("/servefiles/<path:file_path>")
+def serve_file(file_path):
+     return send_from_directory(static_files_path, file_path.replace("/", "\\"))
+    
+@app.route("/viewfile/<path:file_path>")
+def file_viewer(file_path):
+    file_path = static_files_path + "/" + file_path
+    
+    to_template = {"file_path": file_path, "bad_format": 0, "time": str(time.time())}
+    return render_template("view_pdf.html", data = to_template)
+    
+    
  
-@app.route("/viewpdf", defaults={"file_num": 0})
-@app.route("/viewpdf/", defaults={"file_num": 0})
-@app.route("/viewpdf/<int:file_num>")
-def view_pdf(file_num):
+@app.route("/viewnew", defaults={"file_num": 0})
+@app.route("/viewnew/", defaults={"file_num": 0})
+@app.route("/viewnew/<int:file_num>")
+def view_new_pdf(file_num):
     file_num = int(file_num)
     scanner_files = next(os.walk(scanner_path))[2]
     #scanner_files = os.listdir(scanner_path)
@@ -82,8 +103,8 @@ def view_pdf(file_num):
         bad_format = 1
     
     to_html = {"to_display": file_name_ns, "file_num":  file_num, "max_file_num": len(files) - 1,
-                        "bad_format": bad_format }
-    return render_template("view_pdf.html", data=to_html)
+                        "bad_format": bad_format, "time": str(time.time())}
+    return render_template("view_new.html", data=to_html)
 
 
 # =============== other functions =============

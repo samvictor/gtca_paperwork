@@ -55,24 +55,24 @@
         }
         
     </style>
-    <p style="text-align: center;">displaying {{data.file_path}}<br>
-        <!-- query to prevent caching -->
-        <a style="text-align: center;"href="{{data.file_path}}?v={{ data.time }}" download="{{data.file_path}}">
-            download
-        </a><br>        
+    <p style="text-align: center;">displaying {{data.to_display}}<br>
+        <a style="text-align: center;"href="{{url_for('static', filename='scanner/'+data.to_display)}}?v={{data.time}}" 
+            download="{{data.to_display}}">download</a><br>
         Click "This is it" below to add this file to the system
     </p>
     
     <p id="bad_format_msg" style="display: none; text-align: center;"></p>
     
     {% if not data.bad_format %}
-        <object id ="pdf_embed" data="{{data.file_path}}?v={{ data.time }}" >
+        <object id ="pdf_embed" data="{{url_for('static', filename='scanner/'+data.to_display)}}?v={{data.time}}">
             alt: This format is not supported. Download the file to view it.
         </object>
     {% endif %}
     
     <span id="left_btn" class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
     <span id="right_btn" class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
+    
+    <button id="this_btn" class="btn btn-success btn-lg" type="submit">THIS IS IT</button>
     
     <div id="dimmer" style="display: none;">
         <h2 id="loading_msg" >Loading . . .</h2>
@@ -85,6 +85,55 @@
         if (bad_format) {
             $("#pdf_embed").css("display", "none");
             $("#bad_format_msg").html("This format is not supported. Opening in app...").css("display", "block");
+        }
+        
+        $("#left_btn").click(function(){
+            var file_num = {{data.file_num}};
+            if (file_num === 0)
+                return;
+            show_loading();
+            window.location.replace("{{url_for('view_new_pdf', file_num=(data.file_num - 1))}}");
+        });
+        
+        $("#right_btn").click(function(){
+            var file_num = {{data.file_num}};
+            var max_file_num = {{data.max_file_num}}
+            if (file_num === max_file_num)
+                return;
+            show_loading();
+            window.location.replace("{{url_for('view_new_pdf', file_num=(data.file_num + 1))}}");
+        });
+        
+        function show_loading() {
+            $("#dimmer").fadeIn(400);
+            // Start the loop
+            setTimeout(nextFrame, 0);
+            
+            i = 0;
+            function nextFrame() {
+                loading_animation(i);
+                i++;
+                // Continue the loop in 0.6s
+                setTimeout(nextFrame, 600);
+            }
+            
+            function loading_animation(frame) {
+                switch(frame%4) {
+                    case 0:
+                        $("#loading_msg").html("Loading")
+                    break;
+                    case 1:
+                        $("#loading_msg").html("Loading .")
+                    break;
+                    case 2: 
+                        $("#loading_msg").html("Loading . .")
+                    break;
+                    case 3: 
+                        $("#loading_msg").html("Loading . . .")
+                    break;
+                }
+                
+            }
         }
     </script>
 {% endblock %}
