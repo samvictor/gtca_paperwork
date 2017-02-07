@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block body %}
+    <style>
+        #scanner_col, #import_col {
+            padding-right: 10%;
+            padding-left: 10%;
+        }
+        
+        #scanner_col {
+            border-right: solid 1px #aaaaaa;
+            margin-bottom: 50px;
+        }
+        
+        #scanner_btn {
+            margin-top: 20px;
+        }
+    </style>
+    
+    <h1 style="text-align: center">New Document</h1>
+    <div id="container">
+        <div class="row">
+            <div id="scanner_col" class="col-sm-6">
+                <h2 style="text-align: center;">Scanner</h2>
+                <p>Load Paper</p>
+                <p>Press "<strong>Home</strong>" Icon</p>
+                <p>Press "<strong>Scan</strong>"</p>
+                <p>Press "<strong>Network Folder</strong>"</p>
+                <p>Press "<strong>Start Scan</strong>"</p>
+                <p>Follow instructions on printer screen if you need to</p>
+                <p>When scan is finished, press "Scan Finished" on this screen</p>
+                <button id="scanner_btn" class="btn btn-lg btn-success shadow">Scan Finished</button>
+            </div>
+            <div id="import_col" class="col-sm-6">
+                <h2 style="text-align: center;">Import</h2>
+                <button id="import_btn" class="btn btn-lg btn-danger shadow">New Document</button>
+            </div>            
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        $("#scanner_btn").on("click", function () {
+            window.location.href = "/viewnew";
+        });
+    </script>
+{% endblock %}
+
+

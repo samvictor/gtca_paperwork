@@ -54,10 +54,63 @@
             transform: translateX(-50%);
         }
         
+        
+        #arrow_col {
+            text-align: left;
+        }
+        
+        #title_col {
+            text-align: center;            
+        }
+        
+        #preview_col {
+            text-align: right;
+        }
+        
+        #arrow_col, #title_col, #preview_col {
+            position: relative;
+            top: 20px;
+            transform: translateY(-50%);        
+        }
+        
+        #up_arrow, #pg_title, #preview { 
+            margin: 0px; 
+            padding: 0px;
+        }
+        
+        #up_arrow {
+            font-size: 25px;
+            cursor: pointer;
+            color: #333333;
+            transition: color 0.2s ease;
+        }
+        
+        #arrow_col:hover {
+            color: #555555;
+        }
+        
+        
     </style>
-    <p style="text-align: center;">displaying {{data.to_display}}<br>
+    <div class="row" style="padding: 10px 20px 5px 20px;">
+        <div id="arrow_col" class="col-xs-2">
+            <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+        </div>
+        <div id="title_col" class="col-xs-8">
+            <h3 id="pg_title" >Choose file to add to </h3>
+        </div>
+        <div id="preview_col" class="col-xs-2">
+            <!--label id="preview" class="checkbox-inline">
+                <input type="checkbox" id="preview_check"> <h4>Preview</h4>
+            </label-->
+        </div>
+    </div>
+    
+    
+    
+    
+    <p style="text-align: center;">Viewing
         <a style="text-align: center;"href="{{url_for('static', filename='scanner/'+data.to_display)}}?v={{data.time}}" 
-            download="{{data.to_display}}">download</a><br>
+            download="{{data.to_display | safe}}">{{data.to_display}}</a><br>
         Click "This is it" below to add this file to the system
     </p>
     
@@ -65,7 +118,7 @@
     
     {% if not data.bad_format %}
         <object id ="pdf_embed" data="{{url_for('static', filename='scanner/'+data.to_display)}}?v={{data.time}}">
-            alt: This format is not supported. Download the file to view it.
+            This format is not supported. Download the file to view it.
         </object>
     {% endif %}
     
@@ -81,6 +134,30 @@
     
     
     <script>
+        $("#pg_title").append("Home / " + localStorage.getItem("import_location").replace(/\//g, " / "));
+        
+        $("#up_arrow").on("click", function () {
+            window.location.href="/files/" + localStorage.getItem("import_location");
+        });
+        
+        
+        // title resizing
+        replacement_done = false;
+        function title_size() {
+            if ( $(window).width() < 600 && $("#pg_title").html().length > 30 ) {
+                $("#pg_title").replaceWith("<h4 id='pg_title'>"+ $("#pg_title").html() + "</h4>");
+                replacement_done = true;
+            }
+            else if (replacement_done) {
+                $("#pg_title").replaceWith("<h3 id='pg_title'>" + $("#pg_title").html() + "</h3>");
+                replacement_done = false;
+            }
+        }
+        title_size();
+        $(window).resize(function(){
+            title_size();
+        });
+        
         bad_format = {{data.bad_format}}
         if (bad_format) {
             $("#pdf_embed").css("display", "none");
@@ -132,9 +209,16 @@
                         $("#loading_msg").html("Loading . . .")
                     break;
                 }
-                
             }
         }
+        
+        $("#this_btn").on("click", function () {
+            show_loading ();
+            // move with ajax to prevent repeats
+            // redirect to
+            localStorage.getItem("import_location")
+            // success message or temporary highlight
+        });
     </script>
 {% endblock %}
 

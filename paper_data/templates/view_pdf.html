@@ -4,83 +4,103 @@
         html, body { overflow-y: hidden; }
         
         #pdf_embed {
-            width: calc(80% - 20px);
-            height: calc(100% - 105px);
+            width: calc(100% - 20px);
+            height: calc(100% - 80px);
             margin-right: auto;
             margin-left: auto;
             display: block;
             border: solid 1px #202020;
         }    
         
-        #left_btn, #right_btn {
-            position: fixed;
-            top: 50%;
-            font-size: 4em;
+        
+        
+        #arrow_col {
+            text-align: left;
+        }
+        
+        #title_col {
+            text-align: center;            
+        }
+        
+        #preview_col {
+            text-align: right;
+        }
+        
+        #arrow_col, #title_col, #preview_col {
+            position: relative;
+            top: 20px;
+            transform: translateY(-50%);        
+        }
+        
+        #up_arrow, #pg_title, #preview { 
+            margin: 0px; 
+            padding: 0px;
+        }
+        
+        #up_arrow {
+            font-size: 25px;
             cursor: pointer;
+            color: #333333;
+            transition: color 0.2s ease;
         }
         
-        #left_btn {
-            left: 10px;
+        #arrow_col:hover {
+            color: #555555;
         }
         
-        #right_btn {
-            right: 10px;
-        }
-        
-        #this_btn {
-            position: fixed;
-            bottom: 13px;
-            left: 50%;
-            transform: translateX(-50%);
-            border: solid 1px #104010;
-            width: 200px;
-            outline: none;
-        }
-        
-        #dimmer {
-            position: fixed;
-            top: 0px;
-            left: 0px;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(32, 32, 32, 0.7);
-        }
-        
-        #loading_msg {
-            color: white;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
         
     </style>
-    <p style="text-align: center;">displaying {{data.file_path}}<br>
+    <div class="row" style="padding: 10px 20px 30px 20px;">
+        <div id="arrow_col" class="col-xs-2">
+            <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+        </div>
+        <div id="title_col" class="col-xs-8">
+            <h3 id="pg_title"></h3>
+        </div>
+        <div id="preview_col" class="col-xs-2">
+            <!--label id="preview" class="checkbox-inline">
+                <input type="checkbox" id="preview_check"> <h4>Preview</h4>
+            </label-->
+        </div>
+    </div>
         <!-- query to prevent caching -->
-        <a style="text-align: center;"href="{{data.file_path}}?v={{ data.time }}" download="{{data.file_path}}">
+        <!--a style="text-align: center;"href="{{data.file_path}}?v={{ data.time }}" download="{{data.file_name}}">
             download
-        </a><br>        
-        Click "This is it" below to add this file to the system
-    </p>
+        </a-->        
     
     <p id="bad_format_msg" style="display: none; text-align: center;"></p>
     
     {% if not data.bad_format %}
-        <object id ="pdf_embed" data="{{data.file_path}}?v={{ data.time }}" >
-            alt: This format is not supported. Download the file to view it.
+        <object id ="pdf_embed" data="{{data.file_path | safe}}?v={{ data.time }}" >
+            This format is not supported. Download the file to view it.
         </object>
     {% endif %}
-    
-    <span id="left_btn" class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
-    <span id="right_btn" class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
-    
-    <div id="dimmer" style="display: none;">
-        <h2 id="loading_msg" >Loading . . .</h2>
-    </div>
     
     
     
     <script>
+         $("#up_arrow").on("click", function () {
+            window.location.href="/files/" + "{{data.dir_path | safe}}";
+        });
+        
+        // title resizing
+        replacement_done = false;
+        function title_size() {
+            if ( $(window).width() < 600 && $("#pg_title").html().length > 30 ) {
+                $("#pg_title").replaceWith("<h4 id='pg_title'>" + $("#pg_title").html() + "</h4>");
+                replacement_done = true;
+            }
+            else if (replacement_done) {
+                $("#pg_title").replaceWith("<h3 id='pg_title'>" + $("#pg_title").html() + "</h3>");
+                replacement_done = false;
+            }
+        }
+        title_size();
+        $(window).resize(function(){
+            title_size();
+        });
+        
+        $("#pg_title").html("{{data.file_name}}".replace(/_|.pdf/g, " "));
         bad_format = {{data.bad_format}}
         if (bad_format) {
             $("#pdf_embed").css("display", "none");

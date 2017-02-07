@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
     <style>
-        .col-sm-2{background-color: red;}
+        
         .folders, .files {
-            margin-top: 15px;
-            margin-bottom: 15px;
+            margin-top: 0px;
+            margin-bottom: 0px;
             text-align: center;
+            min-height: 120px;
+            padding-top: 0px;
+            
         }
         
         .folders {
@@ -20,9 +23,165 @@
             width: 40px;
             cursor: pointer;
         }
+        
+        #empty_msg {
+            text-align: center;
+            color: #bbbbbb;
+            margin-top: 100px;
+        }
+        
+        #make_modal, #import_btn {
+            width: 10em;
+            position: fixed;
+            right: 20px;
+        }
+        
+        #import_btn {
+            bottom: 84px;
+        }
+        
+        #make_modal {
+            bottom: 20px;
+        }
+        
+        #arrow_col {
+            text-align: left;
+        }
+        
+        #title_col {
+            text-align: center;            
+        }
+        
+        #preview_col {
+            text-align: right;
+        }
+        
+        #arrow_col, #title_col, #preview_col {
+            position: relative;
+            top: 20px;
+            transform: translateY(-50%);        
+        }
+        
+        #up_arrow, #pg_title, #preview { 
+            margin: 0px; 
+            padding: 0px;
+        }
+        
+        #up_arrow {
+            font-size: 25px;
+            cursor: pointer;
+            color: #333333;
+            transition: color 0.2s ease;
+        }
+        
+        #arrow_col:hover {
+            color: #555555;
+        }
+        
+        .checkbox {
+            border: solid 1px black;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);            
+        }
+        
+        .checkbox.unchecked {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);                
+        }
+        
+        .checkbox.checked {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .check {
+            position: relative;
+            top: 0.5px;
+            left: -2.5px;        
+        }
+        
+        .check.unchecked {
+            display: none;
+        }
+        
+        .check.checked {
+            display: inline-block;
+        }
+        
+        label {
+            display: inline;
+        }
+
+        .regular-checkbox {
+            display: none;
+        }
+
+        .regular-checkbox + label {
+            background-color: #fafafa;
+            border: 1px solid #cacece;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px -15px 10px -12px rgba(0,0,0,0.05);
+            padding: 9px;
+            border-radius: 3px;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .regular-checkbox + label:hover {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);
+        }
+
+
+        .regular-checkbox + label:active, .regular-checkbox:checked + label:active {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .regular-checkbox:checked + label {
+            background-color: #e9ecee;
+            border: 1px solid #adb8c0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);
+            color: #99a1a7;
+        }
+
+        .regular-checkbox:checked + label:after {
+            content: '\2714';
+            font-size: 14px;
+            position: absolute;
+            top: 0px;
+            left: 3px;
+            color: #99a1a7;
+        }
+
+        
     </style>
     
-    <h1>Files and Folders</h1>
+    <div class="row" style="padding: 10px 20px 30px 20px;">
+        <div id="arrow_col" class="col-xs-2">
+            {% if data.dir_path and data.dir_path not in ["/", " / "] %}
+                <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+            {% endif %}
+        </div>
+        <div id="title_col" class="col-xs-8">
+            <h3 id="pg_title">Home / {{data.dir_path | replace("_", " ") | replace("/", " / ")}}</h3>
+        </div>
+        <div id="preview_col" class="col-xs-2">
+            <!--label id="preview" class="checkbox-inline">
+                <input type="checkbox" id="preview_check"> <h4>Preview</h4>
+            </label>
+            <div class="pretty success smooth">
+              <input type="checkbox"> 
+              <label><i class="mdi mdi-check"></i> Preview</label>
+            </div>
+            <div class="tag">Checkbox Small</div>
+                <input type="checkbox" id="checkbox-1-1" class="regular-checkbox" /><label for="checkbox-1-1"></label>
+            </div>-->
+            <div class="checkbox unchecked">
+                <span class="check unchecked glyphicon glyphicon-ok" aria-hidden="true"></span>
+            </div>
+        </div>
+    </div>
+    
     <div id="container">
         {% if data.folders %}
             <div id="folders_row" class="row"></div>
@@ -30,12 +189,77 @@
         {% if data.files %}
             <div id="files_row" class="row"></div>
         {% endif %}
+        
+        {% if not data.folders and not data.files %}
+            <h2 id="empty_msg">Nothing Here</h2>
+        {% endif %}
+        
+        <button id="import_btn" class="btn btn-lg btn-danger shadow">New Document</button>
+        <button id="make_modal" type="button" class="btn btn-lg btn-danger shadow" 
+            data-toggle="modal" data-target="#new_folder_modal">
+                New Folder
+        </button>
+
+        <!-- new folder Modal -->
+        <div class="modal fade" id="new_folder_modal" tabindex="-1" role="dialog" aria-labelledby="new_folder_modal_label">
+         <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="new_folder_modal_label">New Folder</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text"class="form-control" placeholder="Folder Name"></input><br>
+                <input type="textarea" class="form-control" placeholder="Folder Description"></input>
+            </div>
+            <div class="modal-footer">
+                <button id="new_folder_btn" type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+         </div>
+        </div>
     </div>
 
 {% endblock %}
 
 {% block js %}
     <script>
+        {% if data.dir_path and data.dir_path not in ["/", " / "] %}
+            $("#up_arrow").on("click", function () {
+                var dirs = "{{data.dir_path | safe}}".split("/");
+                if(! dirs[dirs.length - 1])
+                    dirs.pop();
+                
+                dirs.pop(); // remove last element in list
+                
+                window.location.href="/files/" + dirs.join("/");
+            });
+        {% endif %}
+        
+        $(".checkbox").on("click", function () {
+            $(this).toggleClass("unchecked").toggleClass("checked");
+            $(this).children().toggleClass("unchecked").toggleClass("checked");
+            console.log("click");
+        });
+        
+        // title resizing
+        replacement_done = false;
+        function title_size() {
+            if ( $(window).width() < 600 && $("#pg_title").html().length > 30 ) {
+                $("#pg_title").replaceWith("<h4 id='pg_title'>" + $("#pg_title").html() + "</h4>");
+                replacement_done = true;
+            }
+            else if (replacement_done) {
+                $("#pg_title").replaceWith("<h3 id='pg_title'>" + $("#pg_title").html() + "</h3>");
+                replacement_done = false;
+            }
+        }
+        title_size();
+        $(window).resize(function(){
+            title_size();
+        });
+        
         var folders_row = $("#folders_row");
         var folders = {{ data.folders|safe }};
         var folders_jq = [];        
@@ -60,15 +284,26 @@
         var temp_file = null;
         
         for( var i = 0; i < files.length; i++) {
-            temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_/g, " ") +"</div>");
+            temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_|.pdf/g, " ") +"</div>");
             temp_file.on("click", {"file_name": files[i]}, function(event){
-                window.location.href = "{{data.view_file_path}}" + event.data.file_name;
+                window.location.href = "{{data.view_file_path | safe}}" + event.data.file_name;
             });
             files_jq.push(temp_file);
         }
         
         files_row.append(files_jq);
         
+        $("#import_btn").on("click", function(){
+            localStorage.setItem("import_location", "{{data.dir_path | safe}}");
+            window.location.href="/import";
+        });
+        
+        $("#new_folder_btn").on("click", function() {
+            
+            /* $.post( "ajax/test.html", function( data ) {
+              $( ".result" ).html( data );
+            });*/
+        });
         
     </script>
 {% endblock %}
