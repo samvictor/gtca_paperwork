@@ -5,7 +5,7 @@
         
         #pdf_embed {
             width: calc(80% - 20px);
-            height: calc(100% - 105px);
+            height: calc(100% - 97px);
             margin-right: auto;
             margin-left: auto;
             display: block;
@@ -78,6 +78,16 @@
             padding: 0px;
         }
         
+        #pg_title > a {
+            color: #222222;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        #pg_title > a:hover {
+            color: #666666;
+        }
+        
         #up_arrow {
             font-size: 25px;
             cursor: pointer;
@@ -85,13 +95,13 @@
             transition: color 0.2s ease;
         }
         
-        #arrow_col:hover {
-            color: #555555;
+        #up_arrow:hover {
+            color: #666666;
         }
         
         
     </style>
-    <div class="row" style="padding: 10px 20px 5px 20px;">
+    <div class="row" style="padding: 4px 20px 5px 20px;">
         <div id="arrow_col" class="col-xs-2">
             <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
         </div>
@@ -134,7 +144,7 @@
     
     
     <script>
-        $("#pg_title").append("Home / " + localStorage.getItem("import_location").replace(/\//g, " / "));
+        $("#pg_title").append("<a href='/files'>Home</a> / " + localStorage.getItem("import_location").replace(/\//g, " / "));
         
         $("#up_arrow").on("click", function () {
             window.location.href="/files/" + localStorage.getItem("import_location");
@@ -215,9 +225,14 @@
         $("#this_btn").on("click", function () {
             show_loading ();
             // move with ajax to prevent repeats
-            // redirect to
-            localStorage.getItem("import_location")
-            // success message or temporary highlight
+            $.post( "/move",  { source: "scanner/{{data.to_display}}", target: localStorage.getItem("import_location") } )
+                .done(function(data) {
+                    if (data == "thumbs up") {
+                        var destination =  "/files/" +  localStorage.getItem("import_location");
+                        localStorage.removeItem("import_location");
+                        window.location.href = destination;
+                    }
+                });            
         });
     </script>
 {% endblock %}

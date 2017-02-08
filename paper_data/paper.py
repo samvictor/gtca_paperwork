@@ -174,15 +174,29 @@ def import_msg():
 
 @app.route("/move", methods=["POST"])
 def move():
-    #data = json.loads(data)
-    data = {}
-    print ("source is" + data["source"] + " /t target is " + data["target"])
+    data = request.form
+    print ("source is" + os.path.join(static_path,*data["source"].split("/")) + "   target is " + os.path.join(files_path, *data["target"].split("/") ))
+    source = os.path.join(static_path,*data["source"].split("/"))
+    target = os.path.join(files_path, *data["target"].split("/"), data["source"].split("/")[-1].replace(" ", "_"))
+    
+    shutil.copyfile(source, target)
+    
     return "thumbs up"
     
 @app.route("/newfolder", methods=["POST"])
 def new_folder():
+    data = request.form
+    if os.path.exists(data["target"]):
+        return "error: Folder already exists"
+    else:
+        os.makedirs(data["target"])
+    
     return "thumbs up"
-# =============== other functions ===============
+    
+    
+    
+# ============================== other functions ====================================
+
 def start_server():
     pythoncom.CoInitialize()
     app.run(port=my_port)

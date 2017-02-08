@@ -14,9 +14,36 @@
         #scanner_btn {
             margin-top: 20px;
         }
+        
+        #arrow_col, #title_col, #preview_col {
+            position: relative;
+            top: 20px;
+            transform: translateY(-50%);        
+        }
+        
+        #up_arrow, #pg_title, #preview { 
+            margin: 0px; 
+            padding: 0px;
+        }
+        
+        #up_arrow {
+            font-size: 25px;
+            cursor: pointer;
+            color: #333333;
+            transition: color 0.2s ease;
+        }
     </style>
     
-    <h1 style="text-align: center">New Document</h1>
+    <div class="row" style="padding: 4px 20px 5px 20px;">
+        <div id="arrow_col" class="col-xs-2">
+            <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+        </div>
+        <div id="title_col" style="text-align: center" class="col-xs-8">
+            <h1 id="pg_title" >New Document</h1>
+        </div>
+        <div id="preview_col" class="col-xs-2">
+        </div>
+    </div>
     <div id="container">
         <div class="row">
             <div id="scanner_col" class="col-sm-6">
@@ -41,6 +68,10 @@
 
 {% block js %}
     <script>
+        $("#up_arrow").on("click", function () {
+            window.location.href="/files/" + localStorage.getItem("import_location");
+        });
+        
         $("#scanner_btn").on("click", function () {
             window.location.href = "/viewnew";
         });

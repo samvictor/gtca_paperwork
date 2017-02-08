@@ -67,6 +67,16 @@
             padding: 0px;
         }
         
+        #pg_title > a {
+            color: #222222;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        #pg_title > a:hover {
+            color: #666666;
+        }
+        
         #up_arrow {
             font-size: 25px;
             cursor: pointer;
@@ -74,10 +84,10 @@
             transition: color 0.2s ease;
         }
         
-        #arrow_col:hover {
-            color: #555555;
+        #up_arrow:hover {
+            color: #666666;
         }
-        
+        /*
         .checkbox {
             border: solid 1px black;
             border-radius: 3px;
@@ -152,7 +162,7 @@
             left: 3px;
             color: #99a1a7;
         }
-
+*/
         
     </style>
     
@@ -163,7 +173,7 @@
             {% endif %}
         </div>
         <div id="title_col" class="col-xs-8">
-            <h3 id="pg_title">Home / {{data.dir_path | replace("_", " ") | replace("/", " / ")}}</h3>
+            <h3 id="pg_title"><a href='/files'>Home</a> / {{data.dir_path | replace("_", " ") | replace("/", " / ")}}</h3>
         </div>
         <div id="preview_col" class="col-xs-2">
             <!--label id="preview" class="checkbox-inline">
@@ -175,10 +185,10 @@
             </div>
             <div class="tag">Checkbox Small</div>
                 <input type="checkbox" id="checkbox-1-1" class="regular-checkbox" /><label for="checkbox-1-1"></label>
-            </div>-->
+            </div>
             <div class="checkbox unchecked">
                 <span class="check unchecked glyphicon glyphicon-ok" aria-hidden="true"></span>
-            </div>
+            </div-->
         </div>
     </div>
     
@@ -210,7 +220,7 @@
             </div>
             <div class="modal-body">
                 <input type="text"class="form-control" placeholder="Folder Name"></input><br>
-                <input type="textarea" class="form-control" placeholder="Folder Description"></input>
+                <textarea class="form-control" placeholder="Folder Description (optional)"></textarea>
             </div>
             <div class="modal-footer">
                 <button id="new_folder_btn" type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
