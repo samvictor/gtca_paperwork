@@ -79,7 +79,7 @@
         }
         
         #pg_title > a {
-            color: #222222;
+            color: #111111;
             text-decoration: none;
             transition: color 0.2s ease;
         }
@@ -225,9 +225,9 @@
         $("#this_btn").on("click", function () {
             show_loading ();
             // move with ajax to prevent repeats
-            $.post( "/move",  { source: "scanner/{{data.to_display}}", target: localStorage.getItem("import_location") } )
+            $.post( "/move",  { "source": "scanner/{{data.to_display}}", "target": localStorage.getItem("import_location") } )
                 .done(function(data) {
-                    if (data == "thumbs up") {
+                    if (data === "thumbs up") {
                         var destination =  "/files/" +  localStorage.getItem("import_location");
                         localStorage.removeItem("import_location");
                         window.location.href = destination;

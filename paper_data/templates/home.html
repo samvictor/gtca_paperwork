@@ -68,7 +68,7 @@
         }
         
         #pg_title > a {
-            color: #222222;
+            color: #111111;
             text-decoration: none;
             transition: color 0.2s ease;
         }
@@ -164,6 +164,14 @@
         }
 */
         
+        
+        #warning {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
     </style>
     
     <div class="row" style="padding: 10px 20px 30px 20px;">
@@ -219,7 +227,7 @@
                 <h4 class="modal-title" id="new_folder_modal_label">New Folder</h4>
             </div>
             <div class="modal-body">
-                <input type="text"class="form-control" placeholder="Folder Name"></input><br>
+                <input id="folder_name" type="text"class="form-control" placeholder="Folder Name"></input><br>
                 <textarea class="form-control" placeholder="Folder Description (optional)"></textarea>
             </div>
             <div class="modal-footer">
@@ -230,6 +238,9 @@
          </div>
         </div>
     </div>
+    
+    <!-- alerts -->
+    <div id="warning" class="alert alert-warning" role="alert"></div>
 
 {% endblock %}
 
@@ -241,7 +252,7 @@
                 if(! dirs[dirs.length - 1])
                     dirs.pop();
                 
-                dirs.pop(); // remove last element in list
+                dirs.pop(); // remove last location in url
                 
                 window.location.href="/files/" + dirs.join("/");
             });
@@ -309,10 +320,13 @@
         });
         
         $("#new_folder_btn").on("click", function() {
-            
-            /* $.post( "ajax/test.html", function( data ) {
-              $( ".result" ).html( data );
-            });*/
+            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}" + $("#folder_name").val().replace(/\//g, "") })
+                .done(function (data) {
+                    if (data === "thumbs up")
+                        location.reload(true);
+                    else if(data.substring(0, 5) === "error")
+                        $("#warning").html(data.split(":")[1].trim()).fadeIn(300).delay(1600).fadeOut(300);
+                });
         });
         
     </script>

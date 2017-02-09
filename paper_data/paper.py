@@ -59,7 +59,7 @@ def dir_viewer(dir_path):
             dir_path += "/"
         # replace '/' with whatever is the separator on this os, and replace spaces with underscores
         # python's replace uses a string while js's replace uses regex
-        curr_path = os.path.join(files_path, *dir_path.replace(" ", "_").split("/"))
+        curr_path = os.path.join(files_path, *clean_slashes(dir_path).split("/"))
         
     try:
         files = next(os.walk(curr_path)) # (dirpath, dirnames, filenames)
@@ -73,7 +73,7 @@ def dir_viewer(dir_path):
     
 @app.route("/servefiles/<path:file_path>")
 def serve_file(file_path):
-     return send_from_directory(static_files_path, file_path.replace("/", "\\"))
+     return send_from_directory(static_files_path, os.path.join(*file_path.split("/")))
     
 @app.route("/viewfile/<path:file_path>")
 def file_viewer(file_path):
@@ -99,7 +99,7 @@ def view_new_pdf(file_num):
     
     files = sorted(files, key = lambda file: file["time"], reverse = True)
     file_name = files[file_num]["name"]
-    file_name_ns = file_name.replace(" ", "_")
+    file_name_ns = clean_slashes(file_name)
     print(os.path.join(static_path, "scanner", file_name))
     shutil.copyfile(os.path.join(scanner_path, file_name),
                         os.path.join(static_path, "scanner", file_name_ns))
@@ -177,25 +177,51 @@ def move():
     data = request.form
     print ("source is" + os.path.join(static_path,*data["source"].split("/")) + "   target is " + os.path.join(files_path, *data["target"].split("/") ))
     source = os.path.join(static_path,*data["source"].split("/"))
-    target = os.path.join(files_path, *data["target"].split("/"), data["source"].split("/")[-1].replace(" ", "_"))
+    target = os.path.join(files_path, *data["target"].split("/"), clean(data["source"].split("/")[-1]))
     
     shutil.copyfile(source, target)
     
     return "thumbs up"
     
 @app.route("/newfolder", methods=["POST"])
-def new_folder():
-    data = request.form
-    if os.path.exists(data["target"]):
-        return "error: Folder already exists"
+def new_folder():    
+    
+    print ("folder name is " + request.form["target"])
+    
+    folder_name = clean(request.form["target"].split("/")[-1])
+    
+    print ("now folder name is" + folder_name)
+    target =  os.path.join(files_path, *request.form["target"].split("/")[:-1], folder_name)
+    
+    if not folder_name:
+        return "error: Folder name cannot be blank"
+    
+    if os.path.exists(target):
+        return "error: Folder named " + folder_name +" already exists"
     else:
-        os.makedirs(data["target"])
+        os.makedirs(target)
     
     return "thumbs up"
     
     
     
 # ============================== other functions ====================================
+
+def clean(in_str):
+    return clean_slashes(in_str.replace("\\", "").replace("/", ""))
+
+def clean_slashes(in_str):
+    # clean without touching slashes
+    problem = False
+    out_str = ""
+    
+    for char in in_str:
+        if char not in ' :*#|?"<>':
+            out_str += char        
+        else:
+            problem = True
+            
+    return out_str
 
 def start_server():
     pythoncom.CoInitialize()
