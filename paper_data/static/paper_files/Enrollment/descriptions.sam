@@ -1,0 +1,11 @@
+{
+    "comment": [
+        ".sam files are valid JSON text files. They give this program extra information about a file or directory, such as descriptions.",
+        "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
+        "For descriptions.sam files, folder_descriptions and file_description are guarenteed even though they may be empty"
+    ],
+    "file_descriptions": {},
+    "folder_descriptions": {
+        "new_folder_4": "All these folders! \"new folder 4\" \" ' really?"
+    }
+}

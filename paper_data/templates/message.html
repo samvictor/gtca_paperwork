@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block body %}
+    <style>
+        #arrow_col, #title_col, #preview_col {
+            position: relative;
+            top: 20px;
+            transform: translateY(-50%);        
+        }
+        
+        #up_arrow, #pg_title, #preview { 
+            margin: 0px; 
+            padding: 0px;
+        }
+        
+        #up_arrow {
+            font-size: 25px;
+            cursor: pointer;
+            color: #333333;
+            transition: color 0.2s ease;
+        }
+    </style>
+    
+    <div class="row" style="padding: 4px 20px 5px 20px;">
+        <div id="arrow_col" class="col-xs-2">
+            <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+        </div>
+        <div id="title_col" style="text-align: center" class="col-xs-8">
+            <h1 id="pg_title" >Message</h1>
+        </div>
+        <div id="preview_col" class="col-xs-2">
+        </div>
+    </div>
+    <div id="container">
+        <h3 style="text-align: center;">{{data.message}}</h3>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        $("#up_arrow").on("click", function () {
+            let back_loc = localStorage.getItem("import_location");
+            if (!back_loc)
+                window.location.href="/files/";
+            else
+                window.location.href="/files/" + back_loc;
+        });
+        
+        $("#scanner_btn").on("click", function () {
+            window.location.href = "/viewnew";
+        });
+    </script>
+{% endblock %}
+
+

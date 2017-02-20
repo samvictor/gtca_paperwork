@@ -2,11 +2,11 @@
     Written by Sam for Glad Tidings School
     This program helps them organize their paperwork digitally
     
-    TODO: This is it, up arrow
+    TODO: Delete, Move
 """
 #!/usr/bin/env python
 # pip install README.txt
-import time, webbrowser, requests
+import time, webbrowser, requests, json
 from flask import Flask, url_for, render_template, redirect, send_from_directory, request
 from threading import Thread
 import shutil
@@ -34,7 +34,9 @@ static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\s
 files_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static\paper_files"
 static_files_path = r"/static/paper_files"
 os.sep # directory separator
-heartbeat_timer = 20
+heartbeat_timer = 120
+flashdrive = True
+flashdrive_path = ""
 
 app = Flask(__name__)
 app.secret_key  = os.urandom(25)
@@ -62,12 +64,26 @@ def dir_viewer(dir_path):
         curr_path = os.path.join(files_path, *clean_slashes(dir_path).split("/"))
         
     try:
-        files = next(os.walk(curr_path)) # (dirpath, dirnames, filenames)
+        files = list( next(os.walk(curr_path)) ) # (dirpath, dirnames, filenames)
     except:
         print ("file path "+ curr_path +" not found")
         return redirect(url_for("dir_viewer"), code=302)
         
-    to_template = {"folders": files[1], "files": files[2], "curr_path": curr_path, "view_file_path": "/viewfile/" + dir_path, "dir_path": dir_path}
+    files[2] = [f for f in files[2] if ".sam" not in f]
+    
+    # always sending 'folder_descriptions' and 'file_descriptions' even if they are empty
+    folder_descriptions = {}
+    file_descriptions = {}
+    
+    if os.path.isfile(os.path.join(curr_path, "descriptions.sam")):
+        with open(os.path.join(curr_path, "descriptions.sam")) as data_file:    
+            data = json.load(data_file)
+            folder_descriptions = data["folder_descriptions"]
+            file_descriptions = data["file_descriptions"]
+                
+    
+    to_template = {"folders": files[1], "files": files[2], "curr_path": curr_path, "view_file_path": "/viewfile/" + dir_path, "dir_path": dir_path,
+                                "folder_descriptions": folder_descriptions, "file_descriptions": file_descriptions}
     return render_template("home.html", data = to_template)
     
     
@@ -89,6 +105,18 @@ def file_viewer(file_path):
 @app.route("/viewnew/", defaults={"file_num": 0})
 @app.route("/viewnew/<int:file_num>")
 def view_new_pdf(file_num):
+    if flashdrive:
+        if flashdrive_path:
+            scanner_path = flashdrive_path
+        else:
+            for letter in ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]:
+                scanner_path = letter + ":\\HPSCANS"
+                if os.path.isdir(scanner_path):
+                    break
+                
+                if letter == "Z":
+                    return render_template("message.html", data = {"message": "Flashdrive not found. Refresh to try again."}) 
+                    
     file_num = int(file_num)
     scanner_files = next(os.walk(scanner_path))[2]
     #scanner_files = os.listdir(scanner_path)
@@ -98,7 +126,15 @@ def view_new_pdf(file_num):
         files.append({"name": file_name, "time": file_stats[ST_CTIME]})
     
     files = sorted(files, key = lambda file: file["time"], reverse = True)
-    file_name = files[file_num]["name"]
+    try:
+        file_name = files[file_num]["name"]
+    except IndexError:
+        try: #eafp
+            file_num = 0
+            file_name = files[file_num]["name"]
+        except:
+            return redirect(url_for("dir_viewer"), code=302)
+        
     file_name_ns = clean_slashes(file_name)
     print(os.path.join(static_path, "scanner", file_name))
     shutil.copyfile(os.path.join(scanner_path, file_name),
@@ -170,7 +206,10 @@ def import_msg():
         to_template = {"file_path": "/static/paper_files/"+file_name_ns, "bad_format": 0, "time": str(time.time())}
         return render_template("view_pdf.html", data = to_template)
     """
-    return render_template("import_instr.html")
+    if flashdrive:
+        return render_template("import_instr_flash.html")
+    else:
+        return render_template("import_instr.html")
 
 @app.route("/move", methods=["POST"])
 def move():
@@ -186,11 +225,7 @@ def move():
 @app.route("/newfolder", methods=["POST"])
 def new_folder():    
     
-    print ("folder name is " + request.form["target"])
-    
     folder_name = clean(request.form["target"].split("/")[-1])
-    
-    print ("now folder name is" + folder_name)
     target =  os.path.join(files_path, *request.form["target"].split("/")[:-1], folder_name)
     
     if not folder_name:
@@ -200,6 +235,23 @@ def new_folder():
         return "error: Folder named " + folder_name +" already exists"
     else:
         os.makedirs(target)
+    
+    folder_desc = request.form["description"]
+    
+    if folder_desc:
+        data = {}
+        try:
+            desc_file = open(os.path.join(files_path, *request.form["target"].split("/")[:-1], "descriptions.sam"), "r+") 
+            data = json.load(desc_file)   
+        except FileNotFoundError:
+            desc_file = open(os.path.join(files_path, *request.form["target"].split("/")[:-1], "descriptions.sam"), "w")
+            data = { "comment": [".sam files are valid JSON text files. They give this program extra information about a file or directory, such as descriptions.",
+                    "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
+                    "For descriptions.sam files, folder_descriptions and file_description are guarenteed even though they may be empty"],                     
+                "folder_descriptions": {}, "file_descriptions": {} }
+                    
+        data["folder_descriptions"][folder_name.lower()] = folder_desc
+        desc_file.write( json.dumps( data, indent=4, sort_keys=True ))
     
     return "thumbs up"
     
@@ -215,7 +267,7 @@ def clean_slashes(in_str):
     problem = False
     out_str = ""
     
-    for char in in_str:
+    for char in in_str.replace(" ", "_"):
         if char not in ' :*#|?"<>':
             out_str += char        
         else:

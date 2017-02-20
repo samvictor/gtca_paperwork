@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block body %}
+    <style>
+        #scanner_col, #import_col {
+            padding-right: 10%;
+            padding-left: 10%;
+        }
+        
+        #scanner_col {
+            border-right: solid 1px #aaaaaa;
+            margin-bottom: 50px;
+        }
+        
+        #scanner_btn {
+            margin-top: 20px;
+        }
+        
+        #arrow_col, #title_col, #preview_col {
+            position: relative;
+            top: 20px;
+            transform: translateY(-50%);        
+        }
+        
+        #up_arrow, #pg_title, #preview { 
+            margin: 0px; 
+            padding: 0px;
+        }
+        
+        #up_arrow {
+            font-size: 25px;
+            cursor: pointer;
+            color: #333333;
+            transition: color 0.2s ease;
+        }
+    </style>
+    
+    <div class="row" style="padding: 4px 20px 5px 20px;">
+        <div id="arrow_col" class="col-xs-2">
+            <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+        </div>
+        <div id="title_col" style="text-align: center" class="col-xs-8">
+            <h1 id="pg_title" >New Document</h1>
+        </div>
+        <div id="preview_col" class="col-xs-2">
+        </div>
+    </div>
+    <div id="container">
+        <div class="row">
+            <div id="scanner_col" class="col-sm-6">
+                <h2 style="text-align: center;">Scan to Flash Drive</h2>
+                <p>Load Paper</p>
+                
+                <p>Insert "<strong>Flash Drive</strong>"</p>
+                <p>Touch "<strong>Scan To</strong>"</p>
+                <!--p>4. Press "<strong>Home</strong>" Icon</p>
+                <p>5. Press "<strong>Scan</strong>"</p>
+                <p>6. Press "<strong>USB</strong>" (you will probably need to swipe left to reveal the USB icon)</p-->
+                <p>Press "<strong>Start Scan</strong>"</p>
+                <p>Follow instructions on printer screen if you need to</p>
+                <p>When the scan is finished, plug your Flash Drive into this computer.</p>
+                <p>Click "<strong>Scan Finished</strong>" below</p>
+                <p>On the next screen, if you do not see your file, wait a few seconds, then refresh the page.</p>
+                <button id="scanner_btn" class="btn btn-lg btn-success shadow">Scan Finished</button>
+            </div>
+            <div id="import_col" class="col-sm-6">
+                <h2 style="text-align: center;">Import</h2>
+                <button id="import_btn" class="btn btn-lg btn-danger shadow">New Document</button>
+            </div>            
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        $("#up_arrow").on("click", function () {
+            window.location.href="/files/" + localStorage.getItem("import_location");
+        });
+        
+        $("#scanner_btn").on("click", function () {
+            window.location.href = "/viewnew";
+        });
+    </script>
+{% endblock %}
+
+

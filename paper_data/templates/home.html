@@ -22,6 +22,16 @@
         .file_img {
             width: 40px;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .selected > .file_img {
+            transition: all 0.3s ease;
+            border: solid 3px #337ab7;
+            padding: 2px;
+            width: 55px;
+            border-radius: 2px;
+            background: lightgray;
         }
         
         #empty_msg {
@@ -30,17 +40,21 @@
             margin-top: 100px;
         }
         
-        #make_modal, #import_btn {
+        #make_modal, #import_btn, #delete_btn {
             width: 10em;
             position: fixed;
             right: 20px;
         }
         
         #import_btn {
-            bottom: 84px;
+            bottom: calc(64px + 64px + 20px);
         }
         
         #make_modal {
+            bottom: calc(64px + 20px);
+        }
+        
+        #delete_btn {
             bottom: 20px;
         }
         
@@ -68,13 +82,13 @@
         }
         
         #pg_title > a {
-            color: #111111;
+            color: #2e6da4;
             text-decoration: none;
             transition: color 0.2s ease;
         }
         
         #pg_title > a:hover {
-            color: #666666;
+            color: #337ab7;
         }
         
         #up_arrow {
@@ -87,82 +101,7 @@
         #up_arrow:hover {
             color: #666666;
         }
-        /*
-        .checkbox {
-            border: solid 1px black;
-            border-radius: 3px;
-            width: 20px;
-            height: 20px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);            
-        }
         
-        .checkbox.unchecked {
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);                
-        }
-        
-        .checkbox.checked {
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.3);
-        }
-        
-        .check {
-            position: relative;
-            top: 0.5px;
-            left: -2.5px;        
-        }
-        
-        .check.unchecked {
-            display: none;
-        }
-        
-        .check.checked {
-            display: inline-block;
-        }
-        
-        label {
-            display: inline;
-        }
-
-        .regular-checkbox {
-            display: none;
-        }
-
-        .regular-checkbox + label {
-            background-color: #fafafa;
-            border: 1px solid #cacece;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px -15px 10px -12px rgba(0,0,0,0.05);
-            padding: 9px;
-            border-radius: 3px;
-            display: inline-block;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .regular-checkbox + label:hover {
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);
-        }
-
-
-        .regular-checkbox + label:active, .regular-checkbox:checked + label:active {
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .regular-checkbox:checked + label {
-            background-color: #e9ecee;
-            border: 1px solid #adb8c0;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0px 1px 3px rgba(0,0,0,0.1);
-            color: #99a1a7;
-        }
-
-        .regular-checkbox:checked + label:after {
-            content: '\2714';
-            font-size: 14px;
-            position: absolute;
-            top: 0px;
-            left: 3px;
-            color: #99a1a7;
-        }
-*/
         
         
         #warning {
@@ -212,11 +151,12 @@
             <h2 id="empty_msg">Nothing Here</h2>
         {% endif %}
         
-        <button id="import_btn" class="btn btn-lg btn-danger shadow">New Document</button>
-        <button id="make_modal" type="button" class="btn btn-lg btn-danger shadow" 
+        <button id="import_btn" class="btn btn-lg btn-primary shadow">New Document</button>
+        <button id="make_modal" type="button" class="btn btn-lg btn-default shadow" 
             data-toggle="modal" data-target="#new_folder_modal">
                 New Folder
         </button>
+        <button id="delete_btn" class="btn btn-lg btn-default shadow">Delete</button>
 
         <!-- new folder Modal -->
         <div class="modal fade" id="new_folder_modal" tabindex="-1" role="dialog" aria-labelledby="new_folder_modal_label">
@@ -228,7 +168,7 @@
             </div>
             <div class="modal-body">
                 <input id="folder_name" type="text"class="form-control" placeholder="Folder Name"></input><br>
-                <textarea class="form-control" placeholder="Folder Description (optional)"></textarea>
+                <textarea id="folder_description" class="form-control" placeholder="Folder Description (optional)"></textarea>
             </div>
             <div class="modal-footer">
                 <button id="new_folder_btn" type="button" class="btn btn-primary" data-dismiss="modal">Done</button>
@@ -281,38 +221,63 @@
             title_size();
         });
         
-        var folders_row = $("#folders_row");
-        var folders = {{ data.folders|safe }};
-        var folders_jq = [];        
-        var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}' class='folder_img' ></img>";        
-        var temp_folder = null;
-        
-        for( var i = 0; i < folders.length; i++) {
-            temp_folder = $("<div id='folder_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 folders'>"+folder_img +"<br>"+folders[i].replace(/_/g, " ") +"</div>");
-            temp_folder.on("click", {"folder_name": folders[i]}, function(event){
-                window.location.href += "/" + event.data.folder_name;
-            });
-            folders_jq.push(temp_folder);
+        function populate() {
+            var folder_desc = {{  data.folder_descriptions | safe}};
+            
+            var folders_row = $("#folders_row");
+            var folders = {{ data.folders|safe }};
+            var folders_jq = [];        
+            var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}' class='folder_img' ></img>";        
+            var temp_folder = null;
+            var temp_folder_str = "";
+            var lower_folder_name = "";
+            
+            for( var i = 0; i < folders.length; i++) {
+                temp_folder_str = "<div id='folder_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 folders'>"+folder_img +"<br>"+folders[i].replace(/_/g, " ") +"</div>";
+                temp_folder = $(temp_folder_str);
+                lower_folder_name = folders[i].toLowerCase();
+                if ( typeof( folder_desc[ lower_folder_name ] ) !== "undefined" && folder_desc[ lower_folder_name ] !== "") {
+                    temp_folder.prop('title', folder_desc[ lower_folder_name ]);
+                }
+                
+                temp_folder.on("click", {"folder_name": folders[i]}, function(event){
+                    window.location.href += "/" + event.data.folder_name;
+                });
+                folders_jq.push(temp_folder);
+            }
+            
+            folders_row.append(folders_jq);
+            
+            
+            var file_desc = {{  data.file_descriptions | safe}};
+            console.log(file_desc);
+            
+            var files_row = $("#files_row");        
+            var files = {{data.files|safe}};        
+            var files_jq = [];
+            var file_img = "<img src='{{url_for('static', filename='images/paper.png')}}' class='file_img' ></img>";
+            var temp_file = null;
+            var lower_file_name = "";
+            
+            for( var i = 0; i < files.length; i++) {
+                temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_|.pdf/g, " ") +"</div>");
+                lower_file_name = files[i].toLowerCase();
+                if ( typeof( file_desc[ lower_file_name ] ) !== "undefined" && file_desc[ lower_file_name ] !== "") {
+                    temp_file.prop('title', file_desc[ lower_file_name ]);
+                    console.log("setting title for " + lower_file_name);
+                }
+                else
+                    console.log("not setting title for" + lower_file_name);
+                temp_file.on("click", {"file_name": files[i]}, function(event){
+                    window.location.href = "{{data.view_file_path | safe}}" + event.data.file_name;
+                });
+                files_jq.push(temp_file);
+            }
+            
+            files_row.append(files_jq);
         }
         
-        folders_row.append(folders_jq);
-        
-        
-        var files_row = $("#files_row");        
-        var files = {{data.files|safe}};        
-        var files_jq = [];
-        var file_img = "<img src='{{url_for('static', filename='images/paper.png')}}' class='file_img' ></img>";
-        var temp_file = null;
-        
-        for( var i = 0; i < files.length; i++) {
-            temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_|.pdf/g, " ") +"</div>");
-            temp_file.on("click", {"file_name": files[i]}, function(event){
-                window.location.href = "{{data.view_file_path | safe}}" + event.data.file_name;
-            });
-            files_jq.push(temp_file);
-        }
-        
-        files_row.append(files_jq);
+        populate();
         
         $("#import_btn").on("click", function(){
             localStorage.setItem("import_location", "{{data.dir_path | safe}}");
@@ -320,13 +285,65 @@
         });
         
         $("#new_folder_btn").on("click", function() {
-            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}" + $("#folder_name").val().replace(/\//g, "") })
+            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}" + $("#folder_name").val().replace(/\//g, "") , "description": $("#folder_description").val()})
                 .done(function (data) {
                     if (data === "thumbs up")
                         location.reload(true);
                     else if(data.substring(0, 5) === "error")
                         $("#warning").html(data.split(":")[1].trim()).fadeIn(300).delay(1600).fadeOut(300);
                 });
+        });
+        
+        to_delete = {"empty_folders": [], "full_folders": [], "files": []}
+        full_folders = [];
+        
+        $("#delete_btn").on("click", function(){
+            var folders = {{ data.folders|safe }};
+            var files = {{ data.files | safe }};
+            
+            if (files) {
+                $("#files_row").html("");
+                    
+                var file_desc = {{  data.file_descriptions | safe}};
+                console.log(file_desc);
+                
+                var files_row = $("#files_row");      
+                var files_jq = [];
+                var file_img = "<img src='{{url_for('static', filename='images/paper.png')}}' class='file_img' ></img>";
+                var temp_file = null;
+                var lower_file_name = "";
+                
+                for( var i = 0; i < files.length; i++) {
+                    temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_|.pdf/g, " ") +"</div>");
+                    lower_file_name = files[i].toLowerCase();
+                    if ( typeof( file_desc[ lower_file_name ] ) !== "undefined" && file_desc[ lower_file_name ] !== "") {
+                        temp_file.prop('title', file_desc[ lower_file_name ]);
+                        console.log("setting title for " + lower_file_name);
+                    }
+                    else
+                        console.log("not setting title for" + lower_file_name);
+                    temp_file.on("click", {"file_name": files[i]}, function(event){
+                        if (to_delete["files"].indexOf(event.data.file_name) < 0) {
+                            // selected
+                            to_delete["files"].push(event.data.file_name);
+                            $(this).addClass("selected");
+                        }
+                        else {
+                            to_delete["files"].splice(to_delete["files"].indexOf(event.data.file_name), 1);
+                            $(this).removeClass("selected");
+                        }
+                    });
+                    files_jq.push(temp_file);
+                }
+                
+                files_row.append(files_jq);
+               
+            }
+            
+            if (folders) {
+                $("#folders_row").html("");
+            }
+            
         });
         
     </script>
