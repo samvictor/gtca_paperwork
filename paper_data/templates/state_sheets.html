@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+{% block head %}
+  <style>
+    @media print {
+      .break_after {page-break-after: always;}
+
+      div { float: none !important; position: static !important; display: inline;
+            box-sizing: content-box !important;
+      }
+
+      body { overflow: visible;}
+
+      hr {opacity: 0}
+    }
+
+    t {
+      font-size: 9px;
+      display: inline-block;
+    }
+    .top_label {
+      padding-bottom: 7px;
+    }
+
+    table {
+      width: 100%;
+      font-size: 9px;
+    }
+    th, td {
+      border: solid 1px #aaa;
+      text-align: center;
+      padding: 5px;
+    }
+    th {
+      font-weight: bold;
+      width: 12%;
+      border-bottom: solid 1px #777;
+    }
+
+    .same_day {
+      font-weight: 600;
+      /*background-color: #e8e8e8;*/
+    }
+    /* began parent initials head */
+    .b_p_i {
+      border-right: solid 1px #222;
+    }
+    /*out same day head*/
+    th.o_sd {
+      border-top: solid 1px #222;
+    }
+    /*in same day head*/
+    th.i_sd {
+      border-top: solid 1px #222;
+    }
+    /*initial same day head*/
+    .in_sd {
+      border-right: solid 1px #222;
+    }
+
+    th.in_sd {
+      border-top: solid 1px #222;
+    }
+
+    td.date {
+      font-size: 10px;
+    }
+
+    td.same_day {
+      padding: 0px;
+    }
+
+    img.bg_color {
+      width: 100%;
+      height: 100%;
+      min-height: 24px;
+    }
+
+    .last_row > td.o_sd, .last_row > td.i_sd, .last_row > td.in_sd {
+      border-bottom: solid 1px #222;
+    }
+
+    .sigs {
+      padding-top: 40px;
+    }
+    .sigs.director {padding-left: 160px;}
+
+
+  </style>
+{% endblock %}
+{% block body %}
+  <!--t class="top_label">STATE PAY SIGN IN SHEET FOR February 2017<br>
+  GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>
+  PARENT:  Anna Nunley<br>
+  CHILD:  Courtney Rice<br>
+  CHILD DCN: 0065027087</t>
+
+  <table>
+    <tr>
+      <th>DATE</th> <th>TIME BEGAN</th>
+      <th class="b_p_i">PARENT/GAURDIAN''S INITIALS</th>
+      <th class="same_day o_sd">Time Out if Returning the Same Day</th>
+      <th class="same_day i_sd">Time In if Returning the Same Day</th>
+      <th class="same_day in_sd">Parent/Guardian’s Initials</th>
+      <th>TIME ENDED</th>	<th>PARENT/GUARDIAN’S INITIALS</th>
+    </tr>
+    <tr><td class="date">3/1/17</td>
+      <td></td> <td class="b_p_i"></td>
+      <td class="same_day o_sd">
+        <img class="bg_color" src="/static/images/e8e8e8.png"/>
+      </td>
+      <td class="same_day i_sd">
+        <img class="bg_color" src="/static/images/e8e8e8.png"/>
+      </td>
+      <td class="in_sd same_day">
+        <img class="bg_color" src="/static/images/e8e8e8.png"/>
+      </td>
+      <td></td> <td></td>
+    </tr>
+    <tr class="last_row"><td class="date">3/2/17</td>
+      <td></td> <td class="b_p_i"></td>
+      <td class="same_day o_sd">
+        <img class="bg_color" src="/static/images/e8e8e8.png"/>
+      </td>
+      <td class="same_day i_sd">
+        <img class="bg_color" src="/static/images/e8e8e8.png"/>
+      </td>
+      <td class="in_sd same_day">
+        <img class="bg_color" src="/static/images/e8e8e8.png"/>
+      </td>
+      <td></td> <td></td>
+    </tr>
+  </table>
+  <t class="sigs">Signiture:_____________________________</t>
+  <t class="sigs director">Director:_________________________________</t>
+  <hr class="break_after"-->
+{% endblock %}
+
+{% block js %}
+<script>
+  let this_group;
+  let top_label_str;
+  let this_date;
+  let month_names = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  let this_child;
+  let breaker = "<hr class='break_after' />";
+
+  for (let id = 0; id < 12; id++) {
+    this_group = $("<div id='group_'"+id+"'' class='group'></div>");
+    $("#main_container").append(this_group);
+
+    this_date = new Date();
+    this_child = {"name": "Courtney Rice", "parent": "Anna Nunley",
+                  "dcn": "0065027087"};
+
+    top_label_str = "<t class='top_label'>STATE PAY SIGN IN SHEET FOR ";
+    top_label_str += month_names[this_date.getMonth()] +" ";
+    top_label_str += this_date.getFullYear() +"<br>";
+    top_label_str += "GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>";
+    top_label_str += "PARENT:  "+ this_child.parent +"<br>";
+    top_label_str += "CHILD:  "+ this_child.name +"<br>";
+    top_label_str += "CHILD DCN: "+ this_child.dcn +"</t>";
+
+    this_group.append($(top_label_str));
+
+    this_group.append($(breaker));
+
+  }
+</script>
+{% endblock %}

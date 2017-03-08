@@ -1,109 +1,126 @@
 {% extends "layout.html" %}
 {% block body %}
     <style>
-        
+
         .folders, .files {
             margin-top: 0px;
             margin-bottom: 0px;
             text-align: center;
             min-height: 120px;
             padding-top: 0px;
-            
+            transition: all 0.3s ease;
+
         }
-        
+
         .folders {
         }
-        
+
         .folder_img {
             width: 60px;
             cursor: pointer;
+            border: solid 1px #ddd;
+            border-radius: 2px;
+            padding: 3px;
         }
-        
+
+        .selected > .folder_img {
+            border: solid 3px #337ab7;
+            padding: 3px;
+            width: 80px;
+            border-radius: 2px;
+            background: lightgray;
+        }
+
         .file_img {
             width: 40px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            border: solid 1px #ddd;
+            border-radius: 1.5px;
+            padding: 3px;
         }
-        
+
         .selected > .file_img {
-            transition: all 0.3s ease;
             border: solid 3px #337ab7;
             padding: 2px;
             width: 55px;
             border-radius: 2px;
             background: lightgray;
         }
-        
+
         #empty_msg {
             text-align: center;
             color: #bbbbbb;
             margin-top: 100px;
         }
-        
+
+        .btn {
+            transition: all 0.5s ease;
+        }
+
         #make_modal, #import_btn, #delete_btn {
             width: 10em;
             position: fixed;
             right: 20px;
         }
-        
+
         #import_btn {
             bottom: calc(64px + 64px + 20px);
         }
-        
+
         #make_modal {
             bottom: calc(64px + 20px);
         }
-        
+
         #delete_btn {
             bottom: 20px;
         }
-        
+
         #arrow_col {
             text-align: left;
         }
-        
+
         #title_col {
-            text-align: center;            
+            text-align: center;
         }
-        
+
         #preview_col {
             text-align: right;
         }
-        
+
         #arrow_col, #title_col, #preview_col {
             position: relative;
             top: 20px;
-            transform: translateY(-50%);        
+            transform: translateY(-50%);
         }
-        
-        #up_arrow, #pg_title, #preview { 
-            margin: 0px; 
+
+        #up_arrow, #pg_title, #preview {
+            margin: 0px;
             padding: 0px;
         }
-        
+
         #pg_title > a {
             color: #2e6da4;
             text-decoration: none;
             transition: color 0.2s ease;
         }
-        
+
         #pg_title > a:hover {
             color: #337ab7;
         }
-        
+
         #up_arrow {
             font-size: 25px;
             cursor: pointer;
             color: #333333;
             transition: color 0.2s ease;
         }
-        
+
         #up_arrow:hover {
             color: #666666;
         }
-        
-        
-        
+
+
+
         #warning {
             display: none;
             position: fixed;
@@ -112,7 +129,7 @@
             transform: translateX(-50%);
         }
     </style>
-    
+
     <div class="row" style="padding: 10px 20px 30px 20px;">
         <div id="arrow_col" class="col-xs-2">
             {% if data.dir_path and data.dir_path not in ["/", " / "] %}
@@ -127,7 +144,7 @@
                 <input type="checkbox" id="preview_check"> <h4>Preview</h4>
             </label>
             <div class="pretty success smooth">
-              <input type="checkbox"> 
+              <input type="checkbox">
               <label><i class="mdi mdi-check"></i> Preview</label>
             </div>
             <div class="tag">Checkbox Small</div>
@@ -138,7 +155,7 @@
             </div-->
         </div>
     </div>
-    
+
     <div id="container">
         {% if data.folders %}
             <div id="folders_row" class="row"></div>
@@ -146,13 +163,13 @@
         {% if data.files %}
             <div id="files_row" class="row"></div>
         {% endif %}
-        
+
         {% if not data.folders and not data.files %}
             <h2 id="empty_msg">Nothing Here</h2>
         {% endif %}
-        
+
         <button id="import_btn" class="btn btn-lg btn-primary shadow">New Document</button>
-        <button id="make_modal" type="button" class="btn btn-lg btn-default shadow" 
+        <button id="make_modal" type="button" class="btn btn-lg btn-default shadow"
             data-toggle="modal" data-target="#new_folder_modal">
                 New Folder
         </button>
@@ -178,7 +195,7 @@
          </div>
         </div>
     </div>
-    
+
     <!-- alerts -->
     <div id="warning" class="alert alert-warning" role="alert"></div>
 
@@ -188,22 +205,21 @@
     <script>
         {% if data.dir_path and data.dir_path not in ["/", " / "] %}
             $("#up_arrow").on("click", function () {
-                var dirs = "{{data.dir_path | safe}}".split("/");
+                let dirs = "{{data.dir_path | safe}}".split("/");
                 if(! dirs[dirs.length - 1])
                     dirs.pop();
-                
+
                 dirs.pop(); // remove last location in url
-                
+
                 window.location.href="/files/" + dirs.join("/");
             });
         {% endif %}
-        
+
         $(".checkbox").on("click", function () {
             $(this).toggleClass("unchecked").toggleClass("checked");
             $(this).children().toggleClass("unchecked").toggleClass("checked");
-            console.log("click");
         });
-        
+
         // title resizing
         replacement_done = false;
         function title_size() {
@@ -220,18 +236,21 @@
         $(window).resize(function(){
             title_size();
         });
-        
-        function populate() {
+
+        // populate data
+
+        function populate(click_fn) {
+
             var folder_desc = {{  data.folder_descriptions | safe}};
-            
+
             var folders_row = $("#folders_row");
             var folders = {{ data.folders|safe }};
-            var folders_jq = [];        
-            var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}' class='folder_img' ></img>";        
+            var folders_jq = [];
+            var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}' class='folder_img' ></img>";
             var temp_folder = null;
             var temp_folder_str = "";
             var lower_folder_name = "";
-            
+
             for( var i = 0; i < folders.length; i++) {
                 temp_folder_str = "<div id='folder_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 folders'>"+folder_img +"<br>"+folders[i].replace(/_/g, " ") +"</div>";
                 temp_folder = $(temp_folder_str);
@@ -239,89 +258,58 @@
                 if ( typeof( folder_desc[ lower_folder_name ] ) !== "undefined" && folder_desc[ lower_folder_name ] !== "") {
                     temp_folder.prop('title', folder_desc[ lower_folder_name ]);
                 }
-                
-                temp_folder.on("click", {"folder_name": folders[i]}, function(event){
-                    window.location.href += "/" + event.data.folder_name;
-                });
+
+                if (!click_fn)
+                    temp_folder.on("click", {"folder_name": folders[i]}, function(event){
+                        window.location.href += "/" + event.data.folder_name;
+                    });
+                else if (click_fn === "delete"){
+                    temp_folder.on("click", {"folder_name": folders[i]}, function(event){
+                        console.log(event.data.folder_name);
+                        if (event.data.folder_name in full_folders)
+                            alert("Warning: This folder is not empty. The contents in this folder will also be deleted.")
+                        else {
+                          if (to_delete["empty_folders"].indexOf(event.data.folder_name) < 0) {
+                              // selected
+                              to_delete["empty_folders"].push(event.data.folder_name);
+                              $(this).addClass("selected");
+                          }
+                          else {
+                              to_delete["empty_folders"].splice(to_delete["empty_folders"].indexOf(event.data.folder_name), 1);
+                              $(this).removeClass("selected");
+                          }
+
+                        }
+                    });
+                }
                 folders_jq.push(temp_folder);
             }
-            
+
             folders_row.append(folders_jq);
-            
-            
+
+
             var file_desc = {{  data.file_descriptions | safe}};
-            console.log(file_desc);
-            
-            var files_row = $("#files_row");        
-            var files = {{data.files|safe}};        
+
+            var files_row = $("#files_row");
+            var files = {{data.files|safe}};
             var files_jq = [];
             var file_img = "<img src='{{url_for('static', filename='images/paper.png')}}' class='file_img' ></img>";
             var temp_file = null;
             var lower_file_name = "";
-            
+
             for( var i = 0; i < files.length; i++) {
                 temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_|.pdf/g, " ") +"</div>");
                 lower_file_name = files[i].toLowerCase();
                 if ( typeof( file_desc[ lower_file_name ] ) !== "undefined" && file_desc[ lower_file_name ] !== "") {
                     temp_file.prop('title', file_desc[ lower_file_name ]);
-                    console.log("setting title for " + lower_file_name);
                 }
-                else
-                    console.log("not setting title for" + lower_file_name);
-                temp_file.on("click", {"file_name": files[i]}, function(event){
-                    window.location.href = "{{data.view_file_path | safe}}" + event.data.file_name;
-                });
-                files_jq.push(temp_file);
-            }
-            
-            files_row.append(files_jq);
-        }
-        
-        populate();
-        
-        $("#import_btn").on("click", function(){
-            localStorage.setItem("import_location", "{{data.dir_path | safe}}");
-            window.location.href="/import";
-        });
-        
-        $("#new_folder_btn").on("click", function() {
-            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}" + $("#folder_name").val().replace(/\//g, "") , "description": $("#folder_description").val()})
-                .done(function (data) {
-                    if (data === "thumbs up")
-                        location.reload(true);
-                    else if(data.substring(0, 5) === "error")
-                        $("#warning").html(data.split(":")[1].trim()).fadeIn(300).delay(1600).fadeOut(300);
-                });
-        });
-        
-        to_delete = {"empty_folders": [], "full_folders": [], "files": []}
-        full_folders = [];
-        
-        $("#delete_btn").on("click", function(){
-            var folders = {{ data.folders|safe }};
-            var files = {{ data.files | safe }};
-            
-            if (files) {
-                $("#files_row").html("");
-                    
-                var file_desc = {{  data.file_descriptions | safe}};
-                console.log(file_desc);
-                
-                var files_row = $("#files_row");      
-                var files_jq = [];
-                var file_img = "<img src='{{url_for('static', filename='images/paper.png')}}' class='file_img' ></img>";
-                var temp_file = null;
-                var lower_file_name = "";
-                
-                for( var i = 0; i < files.length; i++) {
-                    temp_file = $("<div id='file_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 files'>"+file_img+"<br>"+ files[i].replace(/_|.pdf/g, " ") +"</div>");
-                    lower_file_name = files[i].toLowerCase();
-                    if ( typeof( file_desc[ lower_file_name ] ) !== "undefined" && file_desc[ lower_file_name ] !== "") {
-                        temp_file.prop('title', file_desc[ lower_file_name ]);
-                        console.log("setting title for " + lower_file_name);
-                    }
-                    else
-                        console.log("not setting title for" + lower_file_name);
+                else {}
+
+                if (!click_fn)
+                    temp_file.on("click", {"file_name": files[i]}, function(event){
+                        window.location.href = "{{data.view_file_path | safe}}" + event.data.file_name;
+                    });
+                else if (click_fn === "delete") {
                     temp_file.on("click", {"file_name": files[i]}, function(event){
                         if (to_delete["files"].indexOf(event.data.file_name) < 0) {
                             // selected
@@ -333,20 +321,65 @@
                             $(this).removeClass("selected");
                         }
                     });
-                    files_jq.push(temp_file);
                 }
-                
-                files_row.append(files_jq);
-               
+                files_jq.push(temp_file);
             }
-            
-            if (folders) {
-                $("#folders_row").html("");
-            }
-            
+
+            files_row.append(files_jq);
+        }
+
+        populate("");
+
+        // buttons
+
+        $("#import_btn").on("click", function(){
+            localStorage.setItem("import_location", "{{data.dir_path | safe}}");
+            window.location.href="/import";
         });
-        
+
+        $("#new_folder_btn").on("click", function() {
+            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}" + $("#folder_name").val().replace(/\//g, "") , "description": $("#folder_description").val()})
+                .done(function (data) {
+                    if (data === "thumbs up")
+                        location.reload(true);
+                    else if(data.substring(0, 5) === "error")
+                        $("#warning").html(data.split(":")[1].trim())
+                                      .fadeIn(300).delay(1600).fadeOut(300);
+                });
+        });
+
+        to_delete = {"empty_folders": [], "full_folders": [], "files": []}
+        full_folders = [];
+        deleting = false;
+
+        $("#delete_btn").on("click", function(){
+            $("#files_row").html("");
+            $("#folders_row").html("");
+            let this_btn = $(this);
+
+            this_btn.toggleClass("btn-default").toggleClass("btn-success");
+
+            if (!deleting){
+                // start deleting mode
+                $.post("/fullfolders", {"folders": {{ data.folders|safe }},
+                                          "path": "{{data.dir_path | safe}}"})
+                    .done(function (data){
+                        full_folders = data;
+                        console.log(full_folders);
+                    });
+
+                deleting = true;
+                this_btn.text("Done");
+                populate("delete");
+            }
+            else {
+                deleting = false;
+                populate();
+                this_btn.text("Delete");
+            }
+
+
+        });
+
     </script>
 {% endblock %}
-
-
