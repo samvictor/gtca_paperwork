@@ -34,7 +34,7 @@ static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\s
 files_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static\paper_files"
 static_files_path = r"/static/paper_files"
 os.sep # directory separator
-heartbeat_timer = 120
+heartbeat_timer = 300
 flashdrive = True
 flashdrive_path = ""
 
@@ -152,7 +152,12 @@ def view_new_pdf(file_num):
 
 @app.route("/state")
 def state():
-    return render_template("state_sheets.html")
+    try:
+        desc_file = open(os.path.join(static_path, "data", "StateSheetData.json"), "r")
+        to_html = {"children": json.load(desc_file)}
+    except FileNotFoundError:
+        to_html = {"children": []}
+    return render_template("state_sheets.html", data = to_html)
 
 @app.route("/heartbeat")
 def heartbeat():

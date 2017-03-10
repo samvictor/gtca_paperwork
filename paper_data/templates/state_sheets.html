@@ -1,16 +1,8 @@
 {% extends "layout.html" %}
 {% block head %}
   <style>
-    @media print {
-      .break_after {page-break-after: always;}
-
-      div { float: none !important; position: static !important; display: inline;
-            box-sizing: content-box !important;
-      }
-
-      body { overflow: visible;}
-
-      hr {opacity: 0}
+    #main_container {
+      padding-top: 40px;
     }
 
     t {
@@ -70,7 +62,7 @@
     }
 
     img.bg_color {
-      width: 100%;
+      width: 99%;
       height: 100%;
       min-height: 24px;
     }
@@ -83,6 +75,21 @@
       padding-top: 40px;
     }
     .sigs.director {padding-left: 160px;}
+
+
+    @media print {
+      .break_after {page-break-after: always;}
+
+      div { float: none !important; position: static !important; display: inline;
+            box-sizing: content-box !important;
+      }
+
+      body { overflow: visible;}
+
+      hr {opacity: 0}
+
+      #main_container { padding-top: 0px;}
+    }
 
 
   </style>
@@ -139,20 +146,87 @@
 <script>
   let this_group;
   let top_label_str;
-  let this_date;
+  let now = new Date();
+  let this_date = new Date(now.getFullYear(), now.getMonth(), 1); // this month, 1st, 2017
   let month_names = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
   let this_child;
+  let children = {{data.children | safe}};
+
+  let table_str = "<table>";
+  table_str +=  "<tr>";
+  table_str +=    "<th>DATE</th> <th>TIME BEGAN</th>";
+  table_str +=    "<th class='b_p_i'>PARENT/GAURDIAN'S INITIALS</th>";
+  table_str +=    "<th class='same_day o_sd'>Time Out if Returning the Same Day</th>";
+  table_str +=    "<th class='same_day i_sd'>Time In if Returning the Same Day</th>";
+  table_str +=    "<th class='same_day in_sd'>Parent/Guardian’s Initials</th>";
+  table_str +=    "<th>TIME ENDED</th>	<th>PARENT/GUARDIAN’S INITIALS</th>";
+  table_str +=  "</tr>";
+
+  let last_date = (new Date(this_date.getFullYear(), this_date.getMonth()+1, 0))
+                      .getDate();// last date of the month
+
+  let day_of_week;
+  for (let day = 1; day <= last_date; day++) {
+    day_of_week = (new Date(this_date.getFullYear(), this_date.getMonth(), day)).getDay();
+    if (day_of_week == 0 || day_of_week == 6)
+      continue;
+
+    // last day could be any of the last 3 days of the month
+    if (day <= last_date - 2) {
+      switch (day) {
+        case last_date:
+          table_str += "<tr class='last_row'>";
+        break;
+
+        case last_date - 2:
+        case last_date - 1:
+          // check if tomorrow is on the weekend.
+          // If tomorrow is on the weekend, the next iteration will continue
+          // and the following will also continue, if it happens
+          // and that iteration will be the last.
+          // So, this is the last successful iteration.
+          day_of_week = new Date(this_date.getFullYear(), this_date.getMonth(),
+                                    day + 1).getDay();
+          if (day_of_week == 0 || day_of_week == 6) {
+            table_str += "<tr class='last_row'>";
+          }
+        break;
+
+      }
+    }
+    else
+      table_str += "<tr>";
+
+    table_str +=  "<td class='date'>"+ (this_date.getMonth()+1) +"/"+ day;
+    table_str +=                    "/"+ this_date.getFullYear() +"</td>";
+    table_str +=  "<td></td> <td class='b_p_i'></td>";
+    table_str +=  "<td class='same_day o_sd'>";
+    table_str +=     "<img class='bg_color' src='/static/images/e8e8e8.png'/>"
+    table_str +=   "</td>";
+    table_str +=   "<td class='same_day i_sd'>";
+    table_str +=      "<img class='bg_color' src='/static/images/e8e8e8.png'/>";
+    table_str +=   "</td>";
+    table_str +=   "<td class='in_sd same_day'>";
+    table_str +=      "<img class='bg_color' src='/static/images/e8e8e8.png'/>";
+    table_str +=   "</td>";
+    table_str +=   "<td></td> <td></td>";
+    table_str +=   "</tr>";
+  }
+
+  table_str += "</table>";
+
+  let sigs_str = "<t class='sigs'>Signiture:_____________________________</t>";
+  sigs_str += "<t class='sigs director'>Director:_________________________________</t>";
   let breaker = "<hr class='break_after' />";
 
-  for (let id = 0; id < 12; id++) {
+  for (let id = 0; id < children.length; id++) {
     this_group = $("<div id='group_'"+id+"'' class='group'></div>");
     $("#main_container").append(this_group);
 
-    this_date = new Date();
-    this_child = {"name": "Courtney Rice", "parent": "Anna Nunley",
-                  "dcn": "0065027087"};
+    this_date;
+    this_child = children[id];
 
     top_label_str = "<t class='top_label'>STATE PAY SIGN IN SHEET FOR ";
     top_label_str += month_names[this_date.getMonth()] +" ";
@@ -164,6 +238,9 @@
 
     this_group.append($(top_label_str));
 
+    this_group.append($(table_str));
+
+    this_group.append($(sigs_str));
     this_group.append($(breaker));
 
   }
