@@ -30,11 +30,24 @@
     <script src="{{url_for('static', filename='bootstrap/js/bootstrap.min.js')}}"></script>
 
     <script>
+        stop_beat = false;
         function heartbeat() {
             $.ajax({
               method: "GET",
               url: "/heartbeat"
             })
+            .done(function( data ) {
+              if (data === "stop") {
+                stop_beat = true;
+              }
+            });
+
+            if (stop_beat) {
+              console.log("stopping heartbeat");
+              return;
+            }
+
+            console.log("starting heartbeat timer");
 
             setTimeout(heartbeat, 4000);
         }

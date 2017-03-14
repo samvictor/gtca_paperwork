@@ -17,15 +17,22 @@
       width: 100%;
       font-size: 9px;
     }
+    td {
+      padding: 0px;
+      margin: 0px;
+    }
     th, td {
       border: solid 1px #aaa;
       text-align: center;
-      padding: 5px;
     }
     th {
       font-weight: bold;
       width: 12%;
       border-bottom: solid 1px #777;
+      padding: 5px;
+    }
+    td.date {      
+      padding: 5px;
     }
 
     .same_day {
@@ -36,6 +43,7 @@
     .b_p_i {
       border-right: solid 1px #222;
     }
+
     /*out same day head*/
     th.o_sd {
       border-top: solid 1px #222;
@@ -62,9 +70,12 @@
     }
 
     img.bg_color {
-      width: 99%;
+      width: 70%;
       height: 100%;
       min-height: 24px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0px;
     }
 
     .last_row > td.o_sd, .last_row > td.i_sd, .last_row > td.in_sd {
@@ -76,13 +87,14 @@
     }
     .sigs.director {padding-left: 160px;}
 
+    div { float: none !important; position: static !important; display: inline;
+          box-sizing: content-box !important;
+    }
 
     @media print {
       .break_after {page-break-after: always;}
 
-      div { float: none !important; position: static !important; display: inline;
-            box-sizing: content-box !important;
-      }
+
 
       body { overflow: visible;}
 
@@ -147,7 +159,7 @@
   let this_group;
   let top_label_str;
   let now = new Date();
-  let this_date = new Date(now.getFullYear(), now.getMonth(), 1); // this month, 1st, 2017
+  let this_date = new Date(now.getFullYear(), now.getMonth()+1, 1); // this month, 1st, 2017
   let month_names = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
@@ -174,7 +186,7 @@
       continue;
 
     // last day could be any of the last 3 days of the month
-    if (day <= last_date - 2) {
+    if (day >= last_date - 2) {
       switch (day) {
         case last_date:
           table_str += "<tr class='last_row'>";
@@ -217,8 +229,8 @@
 
   table_str += "</table>";
 
-  let sigs_str = "<t class='sigs'>Signiture:_____________________________</t>";
-  sigs_str += "<t class='sigs director'>Director:_________________________________</t>";
+  let sigs_str = "<t class='sigs'>Signiture:___________________________________</t>";
+  sigs_str += "<t class='sigs director'>Director:_______________________________________</t>";
   let breaker = "<hr class='break_after' />";
 
   for (let id = 0; id < children.length; id++) {
@@ -241,7 +253,10 @@
     this_group.append($(table_str));
 
     this_group.append($(sigs_str));
-    this_group.append($(breaker));
+
+    // don't put a page break after last section
+    if (id != children.length - 1)
+      this_group.append($(breaker));
 
   }
 </script>

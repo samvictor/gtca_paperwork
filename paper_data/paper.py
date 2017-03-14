@@ -34,6 +34,7 @@ static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\s
 files_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static\paper_files"
 static_files_path = r"/static/paper_files"
 os.sep # directory separator
+use_heartbeat = False
 heartbeat_timer = 300
 flashdrive = True
 flashdrive_path = ""
@@ -160,10 +161,14 @@ def state():
     return render_template("state_sheets.html", data = to_html)
 
 @app.route("/heartbeat")
-def heartbeat():
+def heartbeat_serve():
     global heartbeat_timer
     heartbeat_timer = 10
-    return "thumbs up"
+
+    if use_heartbeat:
+        return "thumbs up"
+    else:
+        return "stop"
 
 @app.route("/setup")
 def setup():
@@ -299,6 +304,8 @@ def start_server():
     pythoncom.CoInitialize()
     app.run(port=my_port)
 
+    print ("Exiting server thread")
+
 def open_browser():
     s_code = -1
     while s_code not in [200, 301, 302]:
@@ -309,26 +316,34 @@ def open_browser():
         time.sleep(0.5)
     webbrowser.open("http://localhost:"+str(my_port)+"/state")
 
+    print ("Exiting browser thread")
+
 def heartbeat():
     global heartbeat_timer
 
-    while heartbeat_timer > 0:
-        heartbeat_timer -= 1
-        time.sleep(1)
+    if use_heartbeat:
+        while heartbeat_timer > 0:
+            heartbeat_timer -= 1
+            time.sleep(1)
+    else:
+        while True:
+            time.sleep(100)
 
     quit()
+    print ("Exiting heartbeat thread")
 
 
 
 if __name__ == "__main__":
     server_thr = Thread(target = start_server)
     browse_thr = Thread(target = open_browser)
-    heartbeat_thr = Thread(target = heartbeat)
 
     server_thr.daemon = True
     browse_thr.daemon = True
-    heartbeat.daemon = True
 
-    browse_thr.start()
-    heartbeat_thr.start()
     server_thr.start()
+    browse_thr.start()
+
+    heartbeat()
+
+    print ("Exiting main thread")
