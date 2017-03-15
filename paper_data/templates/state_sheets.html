@@ -11,6 +11,7 @@
     }
     .top_label {
       padding-bottom: 7px;
+      line-height: 20px;
     }
 
     table {
@@ -24,6 +25,7 @@
     th, td {
       border: solid 1px #aaa;
       text-align: center;
+      min-height: 28px;
     }
     th {
       font-weight: bold;
@@ -31,7 +33,7 @@
       border-bottom: solid 1px #777;
       padding: 5px;
     }
-    td.date {      
+    td.date {
       padding: 5px;
     }
 
@@ -39,26 +41,23 @@
       font-weight: 600;
       /*background-color: #e8e8e8;*/
     }
-    /* began parent initials head */
-    .b_p_i {
-      border-right: solid 1px #222;
-    }
 
     /*out same day head*/
-    th.o_sd {
-      border-top: solid 1px #222;
-    }
     /*in same day head*/
-    th.i_sd {
-      border-top: solid 1px #222;
+    /*initial same day head*/
+    th.i_sd, th.o_sd, th.in_sd  {
+      border-top: solid 2px #222;
+      color: #4a4a4a;
+      font-weight: 100;
     }
     /*initial same day head*/
-    .in_sd {
-      border-right: solid 1px #222;
+    /* began parent initials head */
+    .in_sd, .b_p_i  {
+      border-right: solid 2px #222;
     }
 
-    th.in_sd {
-      border-top: solid 1px #222;
+    .last_row > td.o_sd, .last_row > td.i_sd, .last_row > td.in_sd {
+      border-bottom: solid 2px #222;
     }
 
     td.date {
@@ -70,16 +69,12 @@
     }
 
     img.bg_color {
-      width: 70%;
+      width: 60%;
       height: 100%;
-      min-height: 24px;
       margin-left: auto;
       margin-right: auto;
       padding: 0px;
-    }
-
-    .last_row > td.o_sd, .last_row > td.i_sd, .last_row > td.in_sd {
-      border-bottom: solid 1px #222;
+      opacity: 0;
     }
 
     .sigs {
@@ -87,26 +82,35 @@
     }
     .sigs.director {padding-left: 160px;}
 
-    div { float: none !important; position: static !important; display: inline;
-          box-sizing: content-box !important;
+    .sam_btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      transition: all 1.3s ease;
     }
+
 
     @media print {
       .break_after {page-break-after: always;}
 
-
+      div { float: none !important; position: static !important; display: inline;
+            box-sizing: content-box !important;
+      }
 
       body { overflow: visible;}
 
       hr {opacity: 0}
 
       #main_container { padding-top: 0px;}
+
+      .sam_btn { display: none; }
     }
 
 
   </style>
 {% endblock %}
 {% block body %}
+  <div id='state_data'></div>
   <!--t class="top_label">STATE PAY SIGN IN SHEET FOR February 2017<br>
   GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>
   PARENT:  Anna Nunley<br>
@@ -156,108 +160,143 @@
 
 {% block js %}
 <script>
-  let this_group;
-  let top_label_str;
-  let now = new Date();
-  let this_date = new Date(now.getFullYear(), now.getMonth()+1, 1); // this month, 1st, 2017
-  let month_names = ["January", "February", "March", "April", "May", "June",
+  this_group = null;
+  top_label_str = null;
+  now = new Date();
+  this_date = new Date(now.getFullYear(), now.getMonth()+1, 1); // next month, 1st, 2017
+  month_names = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-  let this_child;
-  let children = {{data.children | safe}};
+  this_child = null;
+  children = {{data.children | safe}};
 
-  let table_str = "<table>";
-  table_str +=  "<tr>";
-  table_str +=    "<th>DATE</th> <th>TIME BEGAN</th>";
-  table_str +=    "<th class='b_p_i'>PARENT/GAURDIAN'S INITIALS</th>";
-  table_str +=    "<th class='same_day o_sd'>Time Out if Returning the Same Day</th>";
-  table_str +=    "<th class='same_day i_sd'>Time In if Returning the Same Day</th>";
-  table_str +=    "<th class='same_day in_sd'>Parent/Guardian’s Initials</th>";
-  table_str +=    "<th>TIME ENDED</th>	<th>PARENT/GUARDIAN’S INITIALS</th>";
-  table_str +=  "</tr>";
+  function populate() {
+    $("#state_data").html("");
+    let last_date = (new Date(this_date.getFullYear(), this_date.getMonth()+1, 0))
+                        .getDate();// last date of the month
 
-  let last_date = (new Date(this_date.getFullYear(), this_date.getMonth()+1, 0))
-                      .getDate();// last date of the month
+    let day_of_week;
 
-  let day_of_week;
-  for (let day = 1; day <= last_date; day++) {
-    day_of_week = (new Date(this_date.getFullYear(), this_date.getMonth(), day)).getDay();
-    if (day_of_week == 0 || day_of_week == 6)
-      continue;
+    let table_str = "<table>";
+    table_str +=  "<tr>";
+    table_str +=    "<th>DATE</th> <th>TIME BEGAN</th>";
+    table_str +=    "<th class='b_p_i'>PARENT/GAURDIAN'S INITIALS</th>";
+    table_str +=    "<th class='same_day o_sd'>Time Out if Returning the Same Day</th>";
+    table_str +=    "<th class='same_day i_sd'>Time In if Returning the Same Day</th>";
+    table_str +=    "<th class='same_day in_sd'>Parent/Guardian’s Initials</th>";
+    table_str +=    "<th>TIME ENDED</th>	<th>PARENT/GUARDIAN’S INITIALS</th>";
+    table_str +=  "</tr>";
 
-    // last day could be any of the last 3 days of the month
-    if (day >= last_date - 2) {
-      switch (day) {
-        case last_date:
-          table_str += "<tr class='last_row'>";
-        break;
+    for (let day = 1; day <= last_date; day++) {
+      day_of_week = (new Date(this_date.getFullYear(), this_date.getMonth(), day)).getDay();
+      if (day_of_week == 0 || day_of_week == 6)
+        continue;
 
-        case last_date - 2:
-        case last_date - 1:
-          // check if tomorrow is on the weekend.
-          // If tomorrow is on the weekend, the next iteration will continue
-          // and the following will also continue, if it happens
-          // and that iteration will be the last.
-          // So, this is the last successful iteration.
-          day_of_week = new Date(this_date.getFullYear(), this_date.getMonth(),
-                                    day + 1).getDay();
-          if (day_of_week == 0 || day_of_week == 6) {
+      // last day could be any of the last 3 days of the month
+      if (day >= last_date - 2) { // TODO use string splicing to inject this
+        switch (day) {
+          case last_date:
             table_str += "<tr class='last_row'>";
-          }
-        break;
+          break;
 
+          case last_date - 2:
+          case last_date - 1:
+            // check if tomorrow is on the weekend.
+            // If tomorrow is on the weekend, the next iteration will continue
+            // and the following will also continue, if it happens
+            // and that iteration will be the last.
+            // So, this is the last successful iteration.
+            day_of_week = new Date(this_date.getFullYear(), this_date.getMonth(),
+                                      day + 1).getDay();
+            if (day_of_week == 0 || day_of_week == 6) {
+              table_str += "<tr class='last_row'>";
+            }
+          break;
+
+        }
       }
+      else
+        table_str += "<tr>";
+
+      table_str +=  "<td class='date'>"+ (this_date.getMonth()+1) +"/"+ day;
+      table_str +=                    "/"+ this_date.getFullYear() +"</td>";
+      table_str +=  "<td></td> <td class='b_p_i'></td>";
+      table_str +=  "<td class='same_day o_sd'>";
+      table_str +=     "<img class='bg_color' src='/static/images/e8e8e8.png'/>"
+      table_str +=   "</td>";
+      table_str +=   "<td class='same_day i_sd'>";
+      table_str +=      "<img class='bg_color' src='/static/images/e8e8e8.png'/>";
+      table_str +=   "</td>";
+      table_str +=   "<td class='in_sd same_day'>";
+      table_str +=      "<img class='bg_color' src='/static/images/e8e8e8.png'/>";
+      table_str +=   "</td>";
+      table_str +=   "<td></td> <td></td>";
+      table_str +=   "</tr>";
     }
-    else
-      table_str += "<tr>";
 
-    table_str +=  "<td class='date'>"+ (this_date.getMonth()+1) +"/"+ day;
-    table_str +=                    "/"+ this_date.getFullYear() +"</td>";
-    table_str +=  "<td></td> <td class='b_p_i'></td>";
-    table_str +=  "<td class='same_day o_sd'>";
-    table_str +=     "<img class='bg_color' src='/static/images/e8e8e8.png'/>"
-    table_str +=   "</td>";
-    table_str +=   "<td class='same_day i_sd'>";
-    table_str +=      "<img class='bg_color' src='/static/images/e8e8e8.png'/>";
-    table_str +=   "</td>";
-    table_str +=   "<td class='in_sd same_day'>";
-    table_str +=      "<img class='bg_color' src='/static/images/e8e8e8.png'/>";
-    table_str +=   "</td>";
-    table_str +=   "<td></td> <td></td>";
-    table_str +=   "</tr>";
+    table_str += "</table>";
+
+
+    console.log("first half of populate done. Time is ");
+    console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
+
+    let sigs_str = "<t class='sigs'>Signiture:___________________________________</t>";
+    sigs_str += "<t class='sigs director'>Director:_______________________________________</t>";
+    let breaker = "<hr class='break_after' />";
+
+    for (let id = 0; id < children.length; id++) {
+      this_group = $("<div id='group_'"+id+"'' class='group'></div>");
+      $("#state_data").append(this_group);
+
+      this_date;
+      this_child = children[id];
+
+      top_label_str = "<t class='top_label'>STATE PAY SIGN IN SHEET FOR ";
+      top_label_str += month_names[this_date.getMonth()] +" ";
+      top_label_str += this_date.getFullYear() +"<br>";
+      top_label_str += "GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>";
+      top_label_str += "PARENT:  "+ this_child[0] +"<br>";
+      top_label_str += "CHILD:  "+ this_child[1] +"<br>";
+      top_label_str += "CHILD DCN: "+ this_child[2] +"</t>";
+
+      this_group.append($(top_label_str));
+
+      this_group.append($(table_str));
+
+      this_group.append($(sigs_str));
+
+      // don't put a page break after last section
+      if (id != children.length - 1)
+        this_group.append($(breaker));
+
+    }
+
+    console.log("leaving populate. Time is ");
+    console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
   }
+  populate();
 
-  table_str += "</table>";
+  $("#main_container").append("<button id='month_btn' class='btn btn-primary sam_btn'>Next Month</button>");
+  next_month = true;
+  $("#month_btn").on("click", function () {
+    $(this).toggleClass("btn-success").toggleClass("btn-primary");
 
-  let sigs_str = "<t class='sigs'>Signiture:___________________________________</t>";
-  sigs_str += "<t class='sigs director'>Director:_______________________________________</t>";
-  let breaker = "<hr class='break_after' />";
+    if (next_month) {
+      next_month = !next_month;
+      $(this).html("This Month");
+      this_date = new Date(now.getFullYear(), now.getMonth(), 1); // this month, 1st, 2017
+    }
+    else {
+      next_month = !next_month;
+      $(this).html("Next Month");
+      this_date = new Date(now.getFullYear(), now.getMonth()+1, 1); // next month, 1st, 2017
+    }
 
-  for (let id = 0; id < children.length; id++) {
-    this_group = $("<div id='group_'"+id+"'' class='group'></div>");
-    $("#main_container").append(this_group);
-
-    this_date;
-    this_child = children[id];
-
-    top_label_str = "<t class='top_label'>STATE PAY SIGN IN SHEET FOR ";
-    top_label_str += month_names[this_date.getMonth()] +" ";
-    top_label_str += this_date.getFullYear() +"<br>";
-    top_label_str += "GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>";
-    top_label_str += "PARENT:  "+ this_child.parent +"<br>";
-    top_label_str += "CHILD:  "+ this_child.name +"<br>";
-    top_label_str += "CHILD DCN: "+ this_child.dcn +"</t>";
-
-    this_group.append($(top_label_str));
-
-    this_group.append($(table_str));
-
-    this_group.append($(sigs_str));
-
-    // don't put a page break after last section
-    if (id != children.length - 1)
-      this_group.append($(breaker));
-
-  }
+    console.log("\n\nstarting populate. Time is ");
+    console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
+    populate();
+    console.log("done with populate. Time is ");
+    console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
+  });
 </script>
 {% endblock %}

@@ -327,7 +327,15 @@ def heartbeat():
             time.sleep(1)
     else:
         while True:
-            time.sleep(100)
+            """
+            try:
+                data = raw_input("mimic:")
+            except NameError:
+                data = input("mimic:")
+            print(data)
+            """
+
+            time.sleep(1)
 
     quit()
     print ("Exiting heartbeat thread")
