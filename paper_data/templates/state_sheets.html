@@ -2,7 +2,6 @@
 {% block head %}
   <style>
     #main_container {
-      padding-top: 40px;
     }
 
     t {
@@ -82,13 +81,24 @@
     }
     .sigs.director {padding-left: 160px;}
 
-    .sam_btn {
+    .sam_hover {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      transition: all 1.3s ease;
     }
 
+    #success_msg, #info_msg {
+      text-align: center;
+      top: 20px;
+      left: 50%;
+      width: 80%;
+      transform: translateX(-50%);
+    }
+
+    #month_btn {
+      transition: all 0.3s ease;
+      width: 130px;
+      bottom: 20px;
+      right: 20px;
+    }
 
     @media print {
       .break_after {page-break-after: always;}
@@ -103,7 +113,8 @@
 
       #main_container { padding-top: 0px;}
 
-      .sam_btn { display: none; }
+      .sam_hover, #title { display: none; }
+
     }
 
 
@@ -111,51 +122,9 @@
 {% endblock %}
 {% block body %}
   <div id='state_data'></div>
-  <!--t class="top_label">STATE PAY SIGN IN SHEET FOR February 2017<br>
-  GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>
-  PARENT:  Anna Nunley<br>
-  CHILD:  Courtney Rice<br>
-  CHILD DCN: 0065027087</t>
-
-  <table>
-    <tr>
-      <th>DATE</th> <th>TIME BEGAN</th>
-      <th class="b_p_i">PARENT/GAURDIAN''S INITIALS</th>
-      <th class="same_day o_sd">Time Out if Returning the Same Day</th>
-      <th class="same_day i_sd">Time In if Returning the Same Day</th>
-      <th class="same_day in_sd">Parent/Guardian’s Initials</th>
-      <th>TIME ENDED</th>	<th>PARENT/GUARDIAN’S INITIALS</th>
-    </tr>
-    <tr><td class="date">3/1/17</td>
-      <td></td> <td class="b_p_i"></td>
-      <td class="same_day o_sd">
-        <img class="bg_color" src="/static/images/e8e8e8.png"/>
-      </td>
-      <td class="same_day i_sd">
-        <img class="bg_color" src="/static/images/e8e8e8.png"/>
-      </td>
-      <td class="in_sd same_day">
-        <img class="bg_color" src="/static/images/e8e8e8.png"/>
-      </td>
-      <td></td> <td></td>
-    </tr>
-    <tr class="last_row"><td class="date">3/2/17</td>
-      <td></td> <td class="b_p_i"></td>
-      <td class="same_day o_sd">
-        <img class="bg_color" src="/static/images/e8e8e8.png"/>
-      </td>
-      <td class="same_day i_sd">
-        <img class="bg_color" src="/static/images/e8e8e8.png"/>
-      </td>
-      <td class="in_sd same_day">
-        <img class="bg_color" src="/static/images/e8e8e8.png"/>
-      </td>
-      <td></td> <td></td>
-    </tr>
-  </table>
-  <t class="sigs">Signiture:_____________________________</t>
-  <t class="sigs director">Director:_________________________________</t>
-  <hr class="break_after"-->
+  <div id='info_msg' style='display: none;' role='alert' class='alert alert-info sam_hover'></div>
+  <div id='success_msg' style='display: none;' role='alert' class='alert alert-success sam_hover'></div>
+  <button id='month_btn' class='btn btn-primary sam_hover'>Next Month</button>
 {% endblock %}
 
 {% block js %}
@@ -244,9 +213,11 @@
     sigs_str += "<t class='sigs director'>Director:_______________________________________</t>";
     let breaker = "<hr class='break_after' />";
 
+    let groups_jq = [];
+
     for (let id = 0; id < children.length; id++) {
       this_group = $("<div id='group_'"+id+"'' class='group'></div>");
-      $("#state_data").append(this_group);
+      groups_jq.push(this_group);
 
       this_date;
       this_child = children[id];
@@ -271,30 +242,39 @@
 
     }
 
+    $("#state_data").append($("<h3 id='title'>State Sheets For "+
+                                month_names[this_date.getMonth()] +" "+
+                                this_date.getFullYear() +"</h3>"));
+
+    $("#state_data").append(groups_jq);
+
     console.log("leaving populate. Time is ");
     console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
   }
   populate();
 
-  $("#main_container").append("<button id='month_btn' class='btn btn-primary sam_btn'>Next Month</button>");
   next_month = true;
   $("#month_btn").on("click", function () {
+    $("#info_msg").text("Working...").fadeIn(400);
     $(this).toggleClass("btn-success").toggleClass("btn-primary");
 
     if (next_month) {
-      next_month = !next_month;
+      next_month = !next_month; // Showing current month
       $(this).html("This Month");
       this_date = new Date(now.getFullYear(), now.getMonth(), 1); // this month, 1st, 2017
+      $("#success_msg").text("Showing Current Month").fadeIn(400).delay(1400).fadeOut(400);
     }
     else {
-      next_month = !next_month;
+      next_month = !next_month; // Showing next month
       $(this).html("Next Month");
       this_date = new Date(now.getFullYear(), now.getMonth()+1, 1); // next month, 1st, 2017
+      $("#success_msg").text("Showing Next Month").fadeIn(400).delay(1400).fadeOut(400);
     }
 
     console.log("\n\nstarting populate. Time is ");
     console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
     populate();
+    $("#info_msg").text("Working...").fadeOut(400);
     console.log("done with populate. Time is ");
     console.log(new Date().getSeconds() +" : "+ new Date().getMilliseconds());
   });

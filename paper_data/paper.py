@@ -316,8 +316,6 @@ def open_browser():
         time.sleep(0.5)
     webbrowser.open("http://localhost:"+str(my_port)+"/state")
 
-    print ("Exiting browser thread")
-
 def heartbeat():
     global heartbeat_timer
 
