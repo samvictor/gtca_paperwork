@@ -5,27 +5,27 @@
             padding-right: 10%;
             padding-left: 10%;
         }
-        
+
         #scanner_col {
             border-right: solid 1px #aaaaaa;
             margin-bottom: 50px;
         }
-        
+
         #scanner_btn {
             margin-top: 20px;
         }
-        
+
         #arrow_col, #title_col, #preview_col {
             position: relative;
             top: 20px;
-            transform: translateY(-50%);        
+            transform: translateY(-50%);
         }
-        
-        #up_arrow, #pg_title, #preview { 
-            margin: 0px; 
+
+        #up_arrow, #pg_title, #preview {
+            margin: 0px;
             padding: 0px;
         }
-        
+
         #up_arrow {
             font-size: 25px;
             cursor: pointer;
@@ -33,7 +33,7 @@
             transition: color 0.2s ease;
         }
     </style>
-    
+
     <div class="row" style="padding: 4px 20px 5px 20px;">
         <div id="arrow_col" class="col-xs-2">
             <span id="up_arrow" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
@@ -49,7 +49,7 @@
             <div id="scanner_col" class="col-sm-6">
                 <h2 style="text-align: center;">Scan to Flash Drive</h2>
                 <p>Load Paper</p>
-                
+
                 <p>Insert "<strong>Flash Drive</strong>"</p>
                 <p>Touch "<strong>Scan To</strong>"</p>
                 <!--p>4. Press "<strong>Home</strong>" Icon</p>
@@ -58,14 +58,15 @@
                 <p>Press "<strong>Start Scan</strong>"</p>
                 <p>Follow instructions on printer screen if you need to</p>
                 <p>When the scan is finished, plug your Flash Drive into this computer.</p>
-                <p>Click "<strong>Scan Finished</strong>" below</p>
+                <p>Click "<strong>Upload File</strong>" below</p>
                 <p>On the next screen, if you do not see your file, wait a few seconds, then refresh the page.</p>
-                <button id="scanner_btn" class="btn btn-lg btn-success shadow">Scan Finished</button>
+                <button id="scanner_btn" class="btn btn-lg btn-success shadow">Upload File</button>
             </div>
             <div id="import_col" class="col-sm-6">
                 <h2 style="text-align: center;">Import</h2>
-                <button id="import_btn" class="btn btn-lg btn-danger shadow">New Document</button>
-            </div>            
+                <p>This side isn't working yet</p>
+                <button id="import_btn" style="text-align: center;"class="btn btn-lg btn-danger shadow">New Document</button>
+            </div>
         </div>
     </div>
 
@@ -76,11 +77,9 @@
         $("#up_arrow").on("click", function () {
             window.location.href="/files/" + localStorage.getItem("import_location");
         });
-        
+
         $("#scanner_btn").on("click", function () {
             window.location.href = "/viewnew";
         });
     </script>
 {% endblock %}
-
-

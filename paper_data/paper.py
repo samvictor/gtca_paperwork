@@ -2,6 +2,8 @@
     Written by Sam for Glad Tidings School
     This program helps them organize their paperwork digitally
 
+    tested using python 3.5.2
+
     TODO: Delete, Move
 """
 #!/usr/bin/env python
@@ -83,7 +85,7 @@ def dir_viewer(dir_path):
             file_descriptions = data["file_descriptions"]
 
 
-    to_template = {"folders": files[1], "files": files[2], "curr_path": curr_path, "view_file_path": "/viewfile/" + dir_path, "dir_path": dir_path,
+    to_template = {"folders": files[1], "files": files[2], "curr_files_path": curr_path, "view_file_path": "/viewfile/" + dir_path, "dir_path": dir_path,
                                 "folder_descriptions": folder_descriptions, "file_descriptions": file_descriptions}
     return render_template("home.html", data = to_template)
 
@@ -282,6 +284,36 @@ def full_folders():
     return jsonify(full_list)
 
 
+@app.route("/delete", methods=["POST"])
+def delete():
+    # I expect {to_delete: {empty_folders: ["a", "b"], full_folders: ["c", "d"],
+    #                       files: ["e", "f"]}
+
+    path = os.path.join(files_path, request.form["path"])
+
+    to_delete = json.loads(request.form["to_delete"])
+    print ("files is ")
+    print (to_delete["files"])
+
+    for f in to_delete["files"]:
+        os.remove(os.path.join(path, f))
+
+    print ("full folders is ")
+    print (to_delete["full_folders"])
+
+    for f in to_delete["full_folders"]:
+        shutil.rmtree(os.path.join(path, f))
+
+    print ("empty folders is ")
+    print (to_delete["empty_folders"])
+
+    for f in to_delete["empty_folders"]:
+        os.rmdir(os.path.join(path, f))
+
+
+    return "thumbs up"
+
+
 # ============================== other functions ====================================
 
 def clean(in_str):
@@ -314,7 +346,7 @@ def open_browser():
         except requests.exceptions.ConnectionError:
             print("connection refused. Trying again.")
         time.sleep(0.5)
-    webbrowser.open("http://localhost:"+str(my_port)+"/state")
+    webbrowser.open("http://localhost:"+str(my_port)+"")
 
 def heartbeat():
     global heartbeat_timer

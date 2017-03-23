@@ -21,11 +21,28 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <style>
+        #warning, #danger, #info, #success, #default {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+
     {% block head %}{% endblock %}
 </head>
 <body>
     <div id="main_container" class="container-fluid">
         {% block body %}{% endblock %}
+
+    <!-- alerts -->
+    <div id="default" class="alert alert-default" role="alert"></div>
+    <div id="info" class="alert alert-info" role="alert"></div>
+    <div id="success" class="alert alert-success" role="alert"></div>
+    <div id="warning" class="alert alert-warning" role="alert"></div>
+    <div id="danger" class="alert alert-danger" role="alert"></div>
     </div>
     <script src="{{url_for('static', filename='bootstrap/js/bootstrap.min.js')}}"></script>
 
@@ -52,6 +69,19 @@
             setTimeout(heartbeat, 4000);
         }
         heartbeat();
+
+        // My Flash Messaging System
+        // I expect msg_ready, msg_type, msg_time, and msg in local storage
+        // all must be strings, except for msg_time which is an int
+        if (localStorage.getItem("msg_ready") === "true") {
+            console.log("working on a message");
+            localStorage.setItem("msg_ready", "false");
+            $("#"+localStorage.getItem("msg_type"))
+                .text(localStorage.getItem("msg"))
+                .fadeIn(300)
+                .delay(localStorage.getItem("msg_time"))
+                .fadeOut(300);
+        }
     </script>
 
     {% block js %}{% endblock %}

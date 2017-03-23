@@ -11,16 +11,13 @@
             transition: all 0.3s ease;
 
         }
-
-        .folders {
-        }
-
         .folder_img {
             width: 60px;
             cursor: pointer;
             border: solid 1px #ddd;
             border-radius: 2px;
             padding: 3px;
+            transition: all 0.3s ease;
         }
 
         .selected > .folder_img {
@@ -37,6 +34,7 @@
             border: solid 1px #ddd;
             border-radius: 1.5px;
             padding: 3px;
+            transition: all 0.3s ease;
         }
 
         .selected > .file_img {
@@ -121,13 +119,7 @@
 
 
 
-        #warning {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+
     </style>
 
     <div class="row" style="padding: 10px 20px 30px 20px;">
@@ -196,8 +188,6 @@
         </div>
     </div>
 
-    <!-- alerts -->
-    <div id="warning" class="alert alert-warning" role="alert"></div>
 
 {% endblock %}
 
@@ -246,13 +236,16 @@
             var folders_row = $("#folders_row");
             var folders = {{ data.folders|safe }};
             var folders_jq = [];
-            var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}' class='folder_img' ></img>";
+            var folder_img = "<img src='{{url_for('static', filename='images/folder.png')}}'"+
+                                  "class='folder_img' ></img>";
             var temp_folder = null;
             var temp_folder_str = "";
             var lower_folder_name = "";
 
             for( var i = 0; i < folders.length; i++) {
-                temp_folder_str = "<div id='folder_"+ i +"' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 folders'>"+folder_img +"<br>"+folders[i].replace(/_/g, " ") +"</div>";
+                temp_folder_str = "<div id='folder_"+ i +
+                    "' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 folders'>"+folder_img +
+                    "<br>"+folders[i].replace(/_/g, " ") +"</div>";
                 temp_folder = $(temp_folder_str);
                 lower_folder_name = folders[i].toLowerCase();
                 if ( typeof( folder_desc[ lower_folder_name ] ) !== "undefined" && folder_desc[ lower_folder_name ] !== "") {
@@ -266,20 +259,32 @@
                 else if (click_fn === "delete"){
                     temp_folder.on("click", {"folder_name": folders[i]}, function(event){
                         console.log(event.data.folder_name);
-                        if (event.data.folder_name in full_folders)
-                            alert("Warning: This folder is not empty. The contents in this folder will also be deleted.")
-                        else {
-                          if (to_delete["empty_folders"].indexOf(event.data.folder_name) < 0) {
-                              // selected
-                              to_delete["empty_folders"].push(event.data.folder_name);
-                              $(this).addClass("selected");
-                          }
-                          else {
-                              to_delete["empty_folders"].splice(to_delete["empty_folders"].indexOf(event.data.folder_name), 1);
-                              $(this).removeClass("selected");
-                          }
+                        if (full_folders.indexOf(event.data.folder_name) >= 0) {
+                            // this is a full folder
+                            if (!(to_delete["full_folders"].indexOf(event.data.folder_name) >= 0) ) {
+                                // if not yet selected, select this folder
+                                $("#warning").text("Warning: This folder is not empty. "+
+                                    "The contents in this folder will also be deleted.")
+                                    .fadeIn(300).delay(4000).fadeOut(300);
 
+                                to_delete["full_folders"].push(event.data.folder_name);
+                                $(this).addClass("selected");
+                            }
+                            else {
+                                to_delete["full_folders"].splice(to_delete["full_folders"].indexOf(event.data.folder_name), 1);
+                                $(this).removeClass("selected");
+                            }
                         }
+                        else
+                            if (to_delete["empty_folders"].indexOf(event.data.folder_name) < 0) {
+                                // selected
+                                to_delete["empty_folders"].push(event.data.folder_name);
+                                $(this).addClass("selected");
+                            }
+                            else {
+                                to_delete["empty_folders"].splice(to_delete["empty_folders"].indexOf(event.data.folder_name), 1);
+                                $(this).removeClass("selected");
+                            }
                     });
                 }
                 folders_jq.push(temp_folder);
@@ -338,12 +343,14 @@
         });
 
         $("#new_folder_btn").on("click", function() {
-            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}" + $("#folder_name").val().replace(/\//g, "") , "description": $("#folder_description").val()})
+            $.post( "/newfolder", { "target": "{{data.dir_path | safe}}"
+                    + $("#folder_name").val().replace(/\//g, "") ,
+                    "description": $("#folder_description").val()})
                 .done(function (data) {
                     if (data === "thumbs up")
                         location.reload(true);
                     else if(data.substring(0, 5) === "error")
-                        $("#warning").html(data.split(":")[1].trim())
+                        $("#danger").html(data.split(":")[1].trim())
                                       .fadeIn(300).delay(1600).fadeOut(300);
                 });
         });
@@ -368,11 +375,39 @@
                         console.log(full_folders);
                     });
 
+                $("#info").text("Choose what you would like to delete").fadeIn(300)
+                      .delay(2000).fadeOut(300);
+
                 deleting = true;
                 this_btn.text("Done");
                 populate("delete");
             }
             else {
+                let delete_count = ( to_delete["empty_folders"].length
+                + to_delete["full_folders"].length
+                + to_delete["files"].length);
+                if (delete_count > 0)
+                    $("#info").text("Working...").fadeIn(300)
+                        .delay(1600).fadeOut(300);
+
+                $.post("/delete", {"to_delete": JSON.stringify(to_delete),
+                                    "path": "{{data.dir_path | safe}}"})
+                    .done(function (data){
+                        let delete_count = ( to_delete["empty_folders"].length
+                        + to_delete["full_folders"].length
+                        + to_delete["files"].length);
+                        if (data === "thumbs up" && delete_count > 0) {
+                            localStorage.setItem("msg", delete_count +
+                                    " Item" + ((delete_count===1)?"":"s") +
+                                    " Deleted");
+
+                            localStorage.setItem("msg_type", "success");
+                            localStorage.setItem("msg_time", 1200);
+                            localStorage.setItem("msg_ready", "true");
+                            location.reload(true);
+                        }
+
+                    });
                 deleting = false;
                 populate();
                 this_btn.text("Delete");
@@ -380,6 +415,8 @@
 
 
         });
+
+
 
     </script>
 {% endblock %}
