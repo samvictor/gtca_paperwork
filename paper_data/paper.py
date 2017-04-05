@@ -110,22 +110,24 @@ def file_viewer(file_path):
 def view_new_pdf(file_num):
     if flashdrive:
         if flashdrive_path:
-            scanner_path = flashdrive_path
+            viewnew_path = flashdrive_path
         else:
             for letter in ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]:
-                scanner_path = letter + ":\\HPSCANS"
-                if os.path.isdir(scanner_path):
+                viewnew_path = letter + ":\\HPSCANS"
+                if os.path.isdir(viewnew_path):
                     break
 
                 if letter == "Z":
                     return render_template("message.html", data = {"message": "Flashdrive not found. Refresh to try again."})
-
+    else:
+        viewnew_path = scanner_path
+        
     file_num = int(file_num)
-    scanner_files = next(os.walk(scanner_path))[2]
-    #scanner_files = os.listdir(scanner_path)
+    scanner_files = next(os.walk(viewnew_path))[2]
+    #scanner_files = os.listdir(viewnew_path)
     files = []
     for file_name in scanner_files:
-        file_stats = os.stat(os.path.join(scanner_path, file_name))
+        file_stats = os.stat(os.path.join(viewnew_path, file_name))
         files.append({"name": file_name, "time": file_stats[ST_CTIME]})
 
     files = sorted(files, key = lambda file: file["time"], reverse = True)
@@ -140,7 +142,7 @@ def view_new_pdf(file_num):
 
     file_name_ns = clean_slashes(file_name)
     print(os.path.join(static_path, "scanner", file_name))
-    shutil.copyfile(os.path.join(scanner_path, file_name),
+    shutil.copyfile(os.path.join(viewnew_path, file_name),
                         os.path.join(static_path, "scanner", file_name_ns))
 
     file_ext = file_name_ns.split(".")[-1]
@@ -263,10 +265,12 @@ def new_folder():
             desc_file = open(os.path.join(files_path, *request.form["target"].split("/")[:-1], "descriptions.sam"), "w")
             data = { "comment": [".sam files are valid JSON text files. They give this program extra information about a file or directory, such as descriptions.",
                     "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
-                    "For descriptions.sam files, folder_descriptions and file_description are guarenteed even though they may be empty"],
+                    "For descriptions.sam files, folder_descriptions and file_descriptions are guarenteed even though they may be empty"],
                 "folder_descriptions": {}, "file_descriptions": {} }
 
         data["folder_descriptions"][folder_name.lower()] = folder_desc
+        desc_file.close()
+        desc_file = open(os.path.join(files_path, *request.form["target"].split("/")[:-1], "descriptions.sam"), "w")
         desc_file.write( json.dumps( data, indent=4, sort_keys=True ))
 
     return "thumbs up"
@@ -288,29 +292,55 @@ def full_folders():
 def delete():
     # I expect {to_delete: {empty_folders: ["a", "b"], full_folders: ["c", "d"],
     #                       files: ["e", "f"]}
-
+    
     path = os.path.join(files_path, request.form["path"])
-
+    
     to_delete = json.loads(request.form["to_delete"])
+    
+    desc_data = {}
+    try:
+        desc_file = open(os.path.join(path, "descriptions.sam"), "r+")
+        desc_data = json.load(desc_file)
+    except FileNotFoundError:
+        desc_file = open(os.path.join(path, "descriptions.sam"), "w")
+        desc_data = { "comment": [".sam files are valid JSON text files. They give this program extra information about a file or directory, such as descriptions.",
+                "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
+                "For descriptions.sam files, folder_descriptions and file_descriptions are guarenteed even though they may be empty"],
+            "folder_descriptions": {}, "file_descriptions": {} }
+    
     print ("files is ")
     print (to_delete["files"])
 
     for f in to_delete["files"]:
         os.remove(os.path.join(path, f))
+        try:
+            del desc_data["file_descriptions"][f]
+        except KeyError:
+            pass
 
     print ("full folders is ")
     print (to_delete["full_folders"])
 
     for f in to_delete["full_folders"]:
         shutil.rmtree(os.path.join(path, f))
+        try:
+            del desc_data["folder_descriptions"][f]
+        except KeyError:
+            pass
 
     print ("empty folders is ")
     print (to_delete["empty_folders"])
 
     for f in to_delete["empty_folders"]:
         os.rmdir(os.path.join(path, f))
-
-
+        try:
+            del desc_data["folder_descriptions"][f]
+        except KeyError:
+            pass
+    desc_file.close()
+    desc_file = open(os.path.join(path, "descriptions.sam"), "w")
+    desc_file.write( json.dumps( desc_data, indent=4, sort_keys=True ))
+    
     return "thumbs up"
 
 

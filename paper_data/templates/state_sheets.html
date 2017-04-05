@@ -12,6 +12,10 @@
       padding-bottom: 7px;
       line-height: 20px;
     }
+    
+    .top_label > .bigger {
+        font-size: 10px;
+    }
 
     table {
       width: 100%;
@@ -226,9 +230,9 @@
       top_label_str += month_names[this_date.getMonth()] +" ";
       top_label_str += this_date.getFullYear() +"<br>";
       top_label_str += "GLAD TIDINGS ACADEMY AND CHILD DEVELOPMENT CENTER   #000783264<br>";
-      top_label_str += "PARENT:  "+ this_child[0] +"<br>";
-      top_label_str += "CHILD:  "+ this_child[1] +"<br>";
-      top_label_str += "CHILD DCN: "+ this_child[2] +"</t>";
+      top_label_str += "PARENT:  <span class='bigger'>"+ this_child[0] +"</span><br>";
+      top_label_str += "CHILD:  <span class='bigger'>"+ this_child[1] +"</span><br>";
+      top_label_str += "CHILD DCN: <span class='bigger'>"+ this_child[2] +"</span></t>";
 
       this_group.append($(top_label_str));
 

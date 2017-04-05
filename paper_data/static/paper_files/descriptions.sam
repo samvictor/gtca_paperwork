@@ -1,15 +1,15 @@
 {
-    "comment": [".sam files are valid JSON text files. They give this program extra information about a file or directory, such as descriptions.",
+    "comment": [
+        ".sam files are valid JSON text files. They give this program extra information about a file or directory, such as descriptions.",
         "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
-        "For descriptions.sam files, folder_descriptions and file_description are guarenteed even though they may be empty"], 
-    
-    "folder_descriptions": 
-    {
-        "comment": ["All names are lowercase. Spaces are replaced by underscores."],
-        
+        "For descriptions.sam files, folder_descriptions and file_descriptions are guarenteed even though they may be empty"
+    ],
+    "file_descriptions": {},
+    "folder_descriptions": {
+        "comment": [
+            "All names are lowercase. Spaces are replaced by underscores."
+        ],
         "enrollment": "Files that have to do with enrollment",
         "lunch_forms": "Harvesters lunch logs for each classroom as well as Temp. logs for the kitchen"
-    },
-    
-    "file_descriptions": {}
+    }
 }

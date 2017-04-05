@@ -389,6 +389,9 @@
                 if (delete_count > 0)
                     $("#info").text("Working...").fadeIn(300)
                         .delay(1600).fadeOut(300);
+                
+                console.log({"to_delete": JSON.stringify(to_delete),
+                                    "path": "{{data.dir_path | safe}}"});
 
                 $.post("/delete", {"to_delete": JSON.stringify(to_delete),
                                     "path": "{{data.dir_path | safe}}"})
