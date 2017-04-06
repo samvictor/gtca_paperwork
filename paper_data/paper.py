@@ -31,7 +31,7 @@ except requests.exceptions.ConnectionError:
     pass
 
 
-settings_path = r"C:\Users\Errolyn Fraser\Documents\gtca_paperwork_settings\paperwork_settings.sam"
+settings_path = os.path.join(os.path.expanduser("~"),"Documents","gtca_paperwork_settings","paperwork_settings.sam")
 
 with open(settings_path) as settings_file:
     settings = json.load(settings_file)
@@ -191,7 +191,6 @@ def setup():
             "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
             "booleans will be lowercase stings. either true or false."
         ],
-        "settings_file" : "C:\\Users\\Errolyn Fraser\\Documents\\gtca_paperwork_settings\\paperwork_settings",
         "scanner_path" : "C:\\Users\\Errolyn Fraser\\SCANNER",
         "static_path" : "C:\\Users\\Errolyn Fraser\\Google Drive\\gtca_paperwork\\paper_data\\static",
         "files_path" : "C:\\Users\\Errolyn Fraser\\Google Drive\\gtca_paperwork\\paper_data\\static\\paper_files",
