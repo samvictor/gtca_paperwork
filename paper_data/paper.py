@@ -4,7 +4,7 @@
 
     tested using python 3.5.2
 
-    TODO: Move, import, restart, settings
+    TODO: Move, import, restart, settings, kill, links to state
 """
 #!/usr/bin/env python
 # pip install README.txt
@@ -88,10 +88,14 @@ def dir_viewer(dir_path):
             data = json.load(data_file)
             folder_descriptions = data["folder_descriptions"]
             file_descriptions = data["file_descriptions"]
-
+    
+    links = []
+    if os.path.isfile(os.path.join(curr_path, "links.sam")):
+        with open(os.path.join(curr_path, "links.sam")) as data_file:
+            links = json.load(data_file)["links"]
 
     to_template = {"folders": files[1], "files": files[2], "curr_files_path": curr_path, "view_file_path": "/viewfile/" + dir_path, "dir_path": dir_path,
-                                "folder_descriptions": folder_descriptions, "file_descriptions": file_descriptions}
+                                "folder_descriptions": folder_descriptions, "file_descriptions": file_descriptions, "links": links}
     return render_template("home.html", data = to_template)
 
 
@@ -400,6 +404,8 @@ def open_browser():
         time.sleep(0.5)
     webbrowser.open("http://localhost:"+str(my_port)+"")
 
+
+kill = False
 def heartbeat():
     global heartbeat_timer
 

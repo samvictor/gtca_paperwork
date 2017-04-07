@@ -4,7 +4,7 @@
 
     tested using python 3.5.2
 
-    TODO: Delete, Move
+    TODO: Move, import, restart, settings
 """
 #!/usr/bin/env python
 # pip install README.txt
@@ -31,15 +31,20 @@ except requests.exceptions.ConnectionError:
     pass
 
 
-scanner_path = "C:\\Users\\Errolyn Fraser\\SCANNER"
-static_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static"
-files_path = r"C:\Users\Errolyn Fraser\Google Drive\gtca_paperwork\paper_data\static\paper_files"
-static_files_path = r"/static/paper_files"
-os.sep # directory separator
-use_heartbeat = False
-heartbeat_timer = 300
-flashdrive = True
-flashdrive_path = ""
+settings_path = os.path.join(os.path.expanduser("~"),"Documents","gtca_paperwork_settings","paperwork_settings.sam")
+
+with open(settings_path) as settings_file:
+    settings = json.load(settings_file)
+    
+scanner_path = settings["scanner_path"]
+static_path = settings["static_path"]
+files_path = settings["files_path"]
+static_files_path = settings["static_files_path"]
+#os.sep - directory separator
+use_heartbeat = settings["use_heartbeat"] == "true"
+heartbeat_timer = settings["heartbeat_timer"]
+flashdrive = settings["flashdrive"] == "true"
+flashdrive_path = settings["flashdrive_path"]
 
 app = Flask(__name__)
 app.secret_key  = os.urandom(25)
@@ -178,7 +183,24 @@ def heartbeat_serve():
 def setup():
     startup_path = os.path.join(*winshell.desktop().split(os.sep)[:3], "AppData", "Roaming", "Microsoft",
                             "Windows", "Start Menu", "Programs", "Startup")
-
+    
+    default_settings = """{
+        "comment": [
+            ".sam files are valid JSON text files. They give this program extra information for GTCA's paperwork.",
+            "In this case, this file saves the user's settings.",
+            "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
+            "booleans will be lowercase stings. either true or false."
+        ],
+        "scanner_path" : "C:\\Users\\Errolyn Fraser\\SCANNER",
+        "static_path" : "C:\\Users\\Errolyn Fraser\\Google Drive\\gtca_paperwork\\paper_data\\static",
+        "files_path" : "C:\\Users\\Errolyn Fraser\\Google Drive\\gtca_paperwork\\paper_data\\static\\paper_files",
+        "static_files_path" : "/static/paper_files",
+        "use_heartbeat" : "false",
+        "heartbeat_timer" : 300,
+        "flashdrive" : "true",
+        "flashdrive_path" : ""
+    }"""
+    
     return startup_path
 
 @app.route("/import")

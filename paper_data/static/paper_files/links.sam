@@ -1,0 +1,14 @@
+{
+    "comment": [
+        ".sam files are valid JSON text files. They give this program extra information for GTCA's paperwork.",
+        "Comments are in lists under keys named comment, but no guarentees that a comment will exist.",
+        "In this case, this contains links to other urls. The links are meant to other paths within paperwork,",
+        "but they can point to any url.",
+        "All links must have the following tags even if they are blank: url, img, name, desc",
+        "url is where the link points to, img is a url of a picture, name is the text for the link,",
+        "desc is description. img should not be blank."
+    ],
+    "links": [
+        {"url": "/state", "img": "/static/images/folder.png", "name": "State Sheets", "desc": ""}
+    ]
+}

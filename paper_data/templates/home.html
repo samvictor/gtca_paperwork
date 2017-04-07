@@ -2,7 +2,7 @@
 {% block body %}
     <style>
 
-        .folders, .files {
+        .folders, .files, .links {
             margin-top: 0px;
             margin-bottom: 0px;
             text-align: center;
@@ -11,7 +11,7 @@
             transition: all 0.3s ease;
 
         }
-        .folder_img {
+        .folder_img, .link_img {
             width: 60px;
             cursor: pointer;
             border: solid 1px #ddd;
@@ -149,6 +149,9 @@
     </div>
 
     <div id="container">
+        {% if data.links %}
+            <div id="links_row" class="row"></div>
+        {% endif %}
         {% if data.folders %}
             <div id="folders_row" class="row"></div>
         {% endif %}
@@ -230,6 +233,28 @@
         // populate data
 
         function populate(click_fn) {
+            
+            if (!click_fn) {
+                var links = {{ data.links|safe }};
+                let this_link;
+                let links_row = $("#links_row");
+                let links_jq = [];
+                
+                for (let i = 0; i < links.length; i++) {
+                    this_link = links[i];
+                    temp_link = "<div id='link_"+ i + "' class='col-lg-2 col-md-2 col-sm-3 col-xs-4 links'>";
+                    temp_link +=    "<img src='"+ this_link["img"] +"' class='link_img'></img>";
+                    temp_link += "<br>"+this_link["name"]+"</div>";
+                    temp_link = $(temp_link);
+                    temp_link.prop("title", this_link["desc"]);
+                    temp_link.on("click", {"url": this_link["url"]}, function (event){
+                        window.location.href = event.data.url;
+                    });
+                    
+                    links_jq.push(temp_link);
+                }
+                links_row.append(links_jq);
+            }
 
             var folder_desc = {{  data.folder_descriptions | safe}};
 
